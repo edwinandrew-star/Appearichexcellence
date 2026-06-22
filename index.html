@@ -6,16 +6,17 @@
     <title>Exam & Past Papers Portal</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --danger: #dc2626;
-            --bg: #f8fafc;
-            --text: #1e293b;
+            --primary-yellow: #facc15; /* Bright Yellow */
+            --dark-black: #1e1b4b;     /* Deep Black/Dark Slate */
+            --pure-white: #ffffff;     /* Clean White Background */
+            --danger-red: #dc2626;
+            --light-gray: #f8fafc;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--pure-white);
+            color: var(--dark-black);
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -23,26 +24,36 @@
 
         .hidden { display: none !important; }
 
-        /* 1. SPLASH SCREEN (Shows your Logo) */
+        /* 1. FULL SCREEN LOGO SPLASH SCREEN (2 Seconds) */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #1e293b;
+            background: var(--dark-black);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease-out;
         }
-        .logo-animation img {
-            width: 150px; /* Adjust based on your logo size */
-            height: auto;
+        .logo-container {
+            text-align: center;
             animation: pulse 1.5s infinite ease-in-out;
         }
+        .logo-container img {
+            width: 180px; /* High-visibility logo */
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .logo-text {
+            color: var(--primary-yellow);
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            0% { transform: scale(0.96); opacity: 0.9; }
+            50% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(0.96); opacity: 0.9; }
         }
 
         /* MAIN APP CONTAINER */
@@ -52,61 +63,78 @@
             padding: 20px;
         }
 
-        /* 2. TOP HERO IMAGE & QUOTE */
+        /* 2. BANNER IMAGE & CUSTOM QUOTE DESCRIPTION */
         .hero-banner {
             position: relative;
             width: 100%;
-            height: 280px;
+            height: 300px;
             border-radius: 12px;
-            /* Points directly to your background image file */
-            background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)), url('images/banner.jpg');
+            background-image: linear-gradient(rgba(30, 27, 75, 0.6), rgba(30, 27, 75, 0.85)), url('images/banner.jpg');
             background-size: cover;
             background-position: center;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
+            color: var(--pure-white);
             text-align: center;
             padding: 20px;
             box-sizing: border-box;
             margin-bottom: 40px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 5px solid var(--primary-yellow);
         }
-        .hero-banner h1 { margin: 0 0 10px 0; font-size: 2.8rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        .hero-banner p { margin: 0; font-style: italic; font-size: 1.3rem; max-width: 600px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .hero-banner h1 { 
+            margin: 0 0 15px 0; 
+            font-size: 3rem; 
+            color: var(--primary-yellow);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+        }
+        .hero-banner p { 
+            margin: 0; 
+            font-style: italic; 
+            font-size: 1.4rem; 
+            max-width: 650px; 
+            line-height: 1.5;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+        }
 
-        /* 3. PAST PAPERS 3x3 GRID WITH THUMBNAILS */
+        /* 3. 3x3 PAST PAPERS GRID */
         .section-title {
-            font-size: 1.75rem;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #cbd5e1;
-            padding-bottom: 10px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            border-left: 6px solid var(--primary-yellow);
+            padding-left: 15px;
         }
         .papers-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
+            gap: 30px;
             margin-bottom: 50px;
         }
         @media (max-width: 768px) {
             .papers-grid { grid-template-columns: 1fr; }
         }
         .paper-card {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden; /* Cleans the image edges at the top */
+            background: var(--light-gray);
+            border-radius: 10px;
+            overflow: hidden;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            border: 2px solid #e2e8f0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: transform 0.2s;
+        }
+        .paper-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-yellow);
         }
         .paper-thumb {
             width: 100%;
-            height: 140px;
-            object-fit: cover; /* Prevents stretching */
-            border-bottom: 1px solid #e2e8f0;
+            height: 150px;
+            object-fit: cover;
+            border-bottom: 2px solid #e2e8f0;
         }
         .paper-content {
             padding: 20px;
@@ -115,58 +143,110 @@
             flex-grow: 1;
             justify-content: space-between;
         }
-        .paper-card h3 { margin: 0 0 8px 0; color: var(--primary); font-size: 1.2rem; }
-        .paper-card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; line-height: 1.4; }
+        .paper-card h3 { margin: 0 0 8px 0; color: var(--dark-black); font-size: 1.25rem; }
+        .paper-card p { margin: 0 0 15px 0; font-size: 0.95rem; color: #475569; }
+        .score-badge {
+            background: var(--dark-black);
+            color: var(--primary-yellow);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+            align-self: flex-start;
+        }
         .paper-card button {
-            background: var(--primary);
-            color: white;
+            background: var(--dark-black);
+            color: var(--primary-yellow);
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            transition: background 0.2s;
         }
-        .paper-card button:hover { background: #1d4ed8; }
+        .paper-card button:hover { 
+            background: #0f0d29; 
+            color: var(--pure-white);
+        }
 
-        /* 4. ACTIVE EXAM VIEW */
+        /* 4. ACTIVE EXAM SECURITY WORKSPACE */
         .exam-window {
-            background: white;
-            padding: 30px;
+            background: var(--pure-white);
+            padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            border: 3px solid var(--dark-black);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             margin-top: 20px;
         }
+        .exam-header {
+            border-bottom: 3px solid var(--primary-yellow);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
         .timer {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            color: var(--danger);
-            background: #fee2e2;
-            padding: 8px 12px;
+            color: var(--pure-white);
+            background: var(--danger-red);
+            padding: 8px 16px;
             border-radius: 6px;
             float: right;
         }
         .question-item {
-            background: #f1f5f9;
-            padding: 15px;
-            margin: 20px 0;
-            border-left: 4px solid var(--primary);
-            border-radius: 0 6px 6px 0;
+            background: var(--light-gray);
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid var(--dark-black);
+            border-radius: 0 8px 8px 0;
         }
+        .question-meta {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background: var(--pure-white);
+        }
+        input[type="text"]:focus {
+            border-color: var(--primary-yellow);
+            outline: none;
+        }
+
+        /* STRICT ANTI-CHEAT COVER OVERLAY */
         .warning-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            color: white; z-index: 10000;
+            background: var(--dark-black);
+            color: var(--pure-white); 
+            z-index: 10000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .warning-screen h1 { color: var(--danger-red); font-size: 3rem; margin-bottom: 10px; }
+        .warning-screen p { font-size: 1.2rem; margin-bottom: 25px; color: #cbd5e1; }
+        .warning-screen button {
+            background: var(--primary-yellow); color: var(--dark-black);
+            padding: 12px 30px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <div class="logo-animation">
-            <img src="images/logo.png" alt="Portal Logo">
+        <div class="logo-container">
+            <img src="images/logo.png" alt="App Logo" onerror="this.style.display='none'">
+            <div class="logo-text">PORTAL</div>
         </div>
     </div>
 
@@ -174,114 +254,76 @@
         
         <div class="hero-banner">
             <h1>Student Portal</h1>
-            <p>"Strive for progress, not perfection. Your future depends on what you do today."</p>
+            <p>"Saw a seed of preparation today for ur next chapter"</p>
         </div>
 
-        <h2 class="section-title">Available Past Papers & Exams</h2>
+        <h2 class="section-title">Your Assignments & Exams</h2>
         <div class="papers-grid">
             <div class="paper-card">
-                <img src="images/math-thumb.jpg" class="paper-thumb" alt="Math">
+                <img src="images/math-thumb.jpg" class="paper-thumb" alt="Math" onerror="this.src='https://via.placeholder.com/350x150?text=Math+Exam'">
                 <div class="paper-content">
+                    <span class="score-badge">Total Score: 100 Pts</span>
                     <h3>Mathematics - Quiz 1</h3>
-                    <p>Topics: Algebra, Linear Equations. Time limit: 10 mins.</p>
-                    <button onclick="openExam('math')">Take Exam</button>
+                    <p>Calculus foundational equations. Submit image formulas document files.</p>
+                    <button onclick="openExam('math')">Start Assignment</button>
                 </div>
             </div>
             <div class="paper-card">
-                <img src="images/chemistry-thumb.jpg" class="paper-thumb" alt="Chemistry">
+                <img src="images/chemistry-thumb.jpg" class="paper-thumb" alt="Chemistry" onerror="this.src='https://via.placeholder.com/350x150?text=Chemistry'">
                 <div class="paper-content">
+                    <span class="score-badge">Total Score: 50 Pts</span>
                     <h3>Chemistry - Midterm</h3>
-                    <p>Topics: Molecular bonds, Gas laws. Time limit: 15 mins.</p>
-                    <button onclick="openExam('chemistry')">Take Exam</button>
+                    <p>Gas properties structures. Photo file attachment documentation required.</p>
+                    <button onclick="openExam('chemistry')">Start Assignment</button>
                 </div>
             </div>
             <div class="paper-card">
-                <img src="images/history-thumb.jpg" class="paper-thumb" alt="History">
+                <img src="images/history-thumb.jpg" class="paper-thumb" alt="History" onerror="this.src='https://via.placeholder.com/350x150?text=History'">
                 <div class="paper-content">
+                    <span class="score-badge">Total Score: 100 Pts</span>
                     <h3>World History - Essay</h3>
-                    <p>Topics: World War I origins. Time limit: 20 mins.</p>
-                    <button onclick="openExam('history')">Take Exam</button>
+                    <p>Theoretical analysis framework tracking. Text review processing structure.</p>
+                    <button onclick="openExam('history')">Start Assignment</button>
                 </div>
             </div>
-            <div class="paper-card">
-                <img src="images/physics-thumb.jpg" class="paper-thumb" alt="Physics">
-                <div class="paper-content">
-                    <h3>Physics - Mechanics</h3>
-                    <p>Topics: Velocity, Force vectors. Practice Mode.</p>
-                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
-                </div>
-            </div>
-            <div class="paper-card">
-                <img src="images/biology-thumb.jpg" class="paper-thumb" alt="Biology">
-                <div class="paper-content">
-                    <h3>Biology - Genetics</h3>
-                    <p>Topics: DNA structures, RNA processing.</p>
-                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
-                </div>
-            </div>
-            <div class="paper-card">
-                <img src="images/english-thumb.jpg" class="paper-thumb" alt="English">
-                <div class="paper-content">
-                    <h3>English - Literature</h3>
-                    <p>Topics: Essay writing parameters.</p>
-                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
-                </div>
-            </div>
-            <div class="paper-card">
-                <img src="images/geography-thumb.jpg" class="paper-thumb" alt="Geography">
-                <div class="paper-content">
-                    <h3>Geography - GIS</h3>
-                    <p>Topics: Spatial mapping profiles.</p>
-                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
-                </div>
-            </div>
-            <div class="paper-card">
-                <img src="images/cs-thumb.jpg" class="paper-thumb" alt="Computer Science">
-                <div class="paper-content">
-                    <h3>Computer Science</h3>
-                    <p>Topics: Array manipulation data structures.</p>
-                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
-                </div>
-            </div>
-            <div class="paper-card">
-                <img src="images/economics-thumb.jpg" class="paper-thumb" alt="Economics">
-                <div class="paper-content">
-                    <h3>Economics - Macro</h3>
-                    <p>Topics: Supply, Demand elasticities.</p>
-                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
-                </div>
-            </div>
+            <div class="paper-card"><div class="paper-content"><span class="score-badge">Locked</span><h3>Physics Core</h3><p>Next chapter unlock module assignment template.</p></div></div>
+            <div class="paper-card"><div class="paper-content"><span class="score-badge">Locked</span><h3>Biology Lab</h3><p>Next chapter unlock module assignment template.</p></div></div>
+            <div class="paper-card"><div class="paper-content"><span class="score-badge">Locked</span><h3>English Literature</h3><p>Next chapter unlock module assignment template.</p></div></div>
+            <div class="paper-card"><div class="paper-content"><span class="score-badge">Locked</span><h3>Geography GIS</h3><p>Next chapter unlock module assignment template.</p></div></div>
+            <div class="paper-card"><div class="paper-content"><span class="score-badge">Locked</span><h3>Computer Science</h3><p>Next chapter unlock module assignment template.</p></div></div>
+            <div class="paper-card"><div class="paper-content"><span class="score-badge">Locked</span><h3>Macro Economics</h3><p>Next chapter unlock module assignment template.</p></div></div>
         </div>
     </div>
 
     <div id="active-exam-portal" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">00:00</span></span>
-            <h2 id="current-exam-title">Exam</h2>
-            <hr>
+            <div class="exam-header">
+                <span class="timer">Time Left: <span id="time-display">00:00</span></span>
+                <h2 id="current-exam-title" style="margin:0;">Exam</h2>
+            </div>
             <form id="exam-form" onsubmit="finishExam(event)">
                 <div id="dynamic-questions-box"></div>
-                <button type="submit" style="background: var(--primary); color: white; padding: 12px; border: none; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer;">Submit Responses</button>
+                <button type="submit" style="background: var(--dark-black); color: var(--primary-yellow); padding: 15px; border: none; width: 100%; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 20px;">Submit Solutions & End Session</button>
             </form>
         </div>
     </div>
 
     <div id="lockout-screen" class="warning-screen hidden">
-        <h1 style="color: var(--danger);">Exam Terminated!</h1>
-        <p>Anti-cheating window trigger locked this session.</p>
-        <button onclick="location.reload()" style="width: auto; padding: 10px 20px;">Return Home</button>
+        <h1>EXAM LOCKED & CLOSED!</h1>
+        <p>Your portal closed immediately because you shifted to another tab or attempted to split the window page view.</p>
+        <button onclick="location.reload()">Return to Dashboard</button>
     </div>
 
     <script>
         const localExams = {
-            math: { title: "Mathematics - Quiz 1", duration: 600, questions: ["Solve: 3x + 7 = 22", "Upload math file work proofs."] },
-            chemistry: { title: "Chemistry - Midterm", duration: 900, questions: ["What is the weight of H2O?", "Upload structural drawing images."] },
-            history: { title: "World History - Essay", duration: 1200, questions: ["Describe the triggers of WWI."] }
+            math: { title: "Mathematics - Quiz 1", duration: 600, points: 100, questions: ["Solve equation step properties: 3x + 7 = 22", "Upload handwritten formula working proof documents."] },
+            chemistry: { title: "Chemistry - Midterm", duration: 900, points: 50, questions: ["Calculate chemical component distribution structures.", "Upload document image scan proofs."] },
+            history: { title: "World History - Essay", duration: 1200, points: 100, questions: ["Write critical review detailing historical shifts."] }
         };
 
-        let clock, timeLeft, cheatingStrikes = 0, examRunning = false;
+        let clock, timeLeft, examRunning = false;
 
-        // Splash Screen Logic (2 seconds)
+        // Splash screen control logic (Stays for 2 seconds exactly)
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -300,61 +342,61 @@
 
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('active-exam-portal').classList.remove('hidden');
-            document.getElementById('current-exam-title').innerText = data.title;
+            document.getElementById('current-exam-title').innerText = `${data.title} (${data.points} Points Total)`;
 
             let box = document.getElementById('dynamic-questions-box');
             box.innerHTML = '';
             data.questions.forEach((q, i) => {
                 box.innerHTML += `
                     <div class="question-item">
-                        <p><strong>Q${i+1}:</strong> ${q}</p>
-                        <input type="text" placeholder="Write answers here" required style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-                        <input type="file" accept="image/*" style="margin-top:5px;">
+                        <div class="question-meta">Task Objective Question ${i+1}</div>
+                        <p style="margin:0 0 12px 0; font-size: 1.1rem; font-weight:600;">${q}</p>
+                        <input type="text" placeholder="Type text remarks/final answers here..." required>
+                        <label style="display:block; margin-top:12px; font-weight:bold; font-size:0.9rem;">Take photo or upload step-by-step document details:</label>
+                        <input type="file" accept="image/*,application/pdf">
                     </div>`;
             });
 
+            // Countdown Timer setup
             clock = setInterval(() => {
-                if(timeLeft <= 0) { clearInterval(clock); alert("Time's Up!"); finishExam(); }
-                else {
+                if(timeLeft <= 0) { 
+                    clearInterval(clock); 
+                    alert("Your allocated assignment time hit zero! Submitting answers automatically."); 
+                    finishExam(); 
+                } else {
                     timeLeft--;
                     let m = Math.floor(timeLeft/60), s = timeLeft%60;
                     document.getElementById('time-display').innerText = `${m}:${s.toString().padStart(2,'0')}`;
                 }
             }, 1000);
 
-            document.addEventListener('visibilitychange', checkCheating);
-            window.addEventListener('blur', checkCheating);
-            window.addEventListener('resize', checkResize);
+            // CRITICAL ANTI-CHEATING ACTIONS: Immediately closes the exam page on any tab switch, blur, or split-screen activity
+            document.addEventListener('visibilitychange', triggerStrictLockout);
+            window.addEventListener('blur', triggerStrictLockout);
+            window.addEventListener('resize', checkSplitScreen);
         }
 
-        function checkCheating() {
+        function triggerStrictLockout() {
             if(!examRunning) return;
-            if (document.hidden || !document.hasFocus()) {
-                cheatingStrikes++;
-                if(cheatingStrikes >= 2) triggerLockout();
-                else alert("Security Warning: Do not swap tabs or click outside!");
-            }
-        }
-
-        function checkResize() {
-            if(!examRunning) return;
-            if(window.innerWidth < 800) {
-                cheatingStrikes++;
-                if(cheatingStrikes >= 2) triggerLockout();
-                else alert("Security Warning: Split-screens or window resizes are restricted!");
-            }
-        }
-
-        function triggerLockout() {
-            examRunning = false; clearInterval(clock);
+            examRunning = false; 
+            clearInterval(clock);
             document.getElementById('active-exam-portal').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
         }
 
+        function checkSplitScreen() {
+            if(!examRunning) return;
+            // Triggers lockdown if student drops width to split-screen boundaries
+            if(window.innerWidth < 850 || window.innerHeight < 550) {
+                triggerStrictLockout();
+            }
+        }
+
         function finishExam(e) {
             if(e) e.preventDefault();
-            examRunning = false; clearInterval(clock);
-            alert("Exam submitted successfully!");
+            examRunning = false; 
+            clearInterval(clock);
+            alert("Your documents and scores are successfully compiled!");
             location.reload();
         }
     </script>
