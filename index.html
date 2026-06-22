@@ -23,14 +23,13 @@
             padding: 0;
             min-height: 100vh;
             overflow-x: hidden;
-            /* Prevents selecting text to make copy/pasting or screenshot highlighting impossible */
             user-select: none;
             -webkit-user-select: none;
         }
 
         .hidden { display: none !important; }
 
-        /* 1. EXACT LOGO SPLASH SCREEN GRAPHIC RULES */
+        /* 1. SPLASH SCREEN DISPLAY */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -43,12 +42,12 @@
         }
         .logo-container { text-align: center; }
         .logo-main-text { font-size: 4.5rem; font-weight: 900; margin: 0; letter-spacing: 4px; color: var(--pure-white); }
-        .logo-sub-text { color: var(--primary-yellow); font-size: 1.6rem; letter-spacing: 3px; margin-top: 10px; font-weight: 600; text-transform: none; }
+        .logo-sub-text { color: var(--primary-yellow); font-size: 1.6rem; letter-spacing: 3px; margin-top: 10px; font-weight: 600; }
 
-        /* MAIN APP CONTAINERS */
+        /* MAIN DASHBOARD STRUCTURE */
         .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
-        /* HERO BANNER */
+        /* HERO BANNER - APPEARICH STANDARD STYLE */
         .hero-banner-full {
             width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
             height: 320px; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('images/banner.jpg');
@@ -59,24 +58,24 @@
         .hero-banner-full h1 { margin: 0 0 15px 0; font-size: 3.5rem; color: var(--primary-yellow); font-weight: 900; letter-spacing: 2px; }
         .hero-banner-full p { margin: 0; font-style: italic; font-size: 1.5rem; max-width: 750px; line-height: 1.6; }
 
-        /* GRID */
+        /* SUBJECT CARDS GRID (MATH, SCIENCE, ENGLISH) */
         .section-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 25px; border-left: 6px solid var(--primary-yellow); padding-left: 15px; }
         .papers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 50px; }
         @media (max-width: 768px) { .papers-grid { grid-template-columns: 1fr; } }
         
         .paper-card { background: var(--card-gray); border-radius: 10px; border: 2px solid #e5e7eb; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
         .paper-card h3 { margin: 0 0 5px 0; font-size: 1.4rem; color: #111827; }
-        .date-badge { font-size: 0.85rem; font-weight: bold; color: #4b5563; background: #e5e7eb; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
-        .score-badge { background: #111827; color: var(--primary-yellow); padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; float: right; }
+        .subject-badge { font-size: 0.85rem; font-weight: bold; color: #4b5563; background: #e5e7eb; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
         .paper-card p { margin: 0 0 20px 0; font-size: 0.95rem; color: #4b5563; }
         .paper-card button { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .paper-card button:hover { background: #000; }
 
-        /* EXAM ACTIVE WORKSPACE */
+        /* EXAM MODE INTERFACE */
         .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; }
         .timer { font-size: 1.25rem; font-weight: bold; color: var(--pure-white); background: var(--danger-red); padding: 6px 14px; border-radius: 6px; float: right; }
         .question-box { background: var(--card-gray); padding: 20px; margin: 20px 0; border-left: 5px solid #111827; border-radius: 4px; }
 
-        /* ANTI-CAMERA / ANTI-SCREENSHOT BLANKOUT COVER OVERLAY */
+        /* ANTI-CHEAT PRIVACY SHIELD */
         #secure-blankout-curtain {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000000; color: #ffffff; display: flex; flex-direction: column;
@@ -88,17 +87,13 @@
         .upload-window { background: var(--card-gray); padding: 40px; border-radius: 12px; border: 3px dashed var(--primary-yellow); text-align: center; }
         .file-input-group { background: var(--pure-white); padding: 30px; border-radius: 8px; border: 2px solid #e5e7eb; margin: 20px 0; }
 
-        /* TEACHER ADMINISTRATION WORKSPACE */
-        .teacher-portal { background: #f1f5f9; border: 3px solid var(--dark-charcoal); border-radius: 12px; padding: 30px; margin-top: 40px; }
-        .admin-box { background: var(--pure-white); border: 1px solid #cbd5e1; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .input-item { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-
-        /* LOCKOUT SYSTEM SCREEN */
+        /* LOCKOUT NOTIFICATION SCREEN */
         .warning-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000000; color: var(--pure-white); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
 
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="logo-container">
             <div class="logo-main-text">Appearich</div>
@@ -106,81 +101,57 @@
         </div>
     </div>
 
+    <!-- DASHBOARD VIEW -->
     <div id="main-dashboard" class="app-container hidden">
         <div class="hero-banner-full">
             <h1>Appearich</h1>
             <p>"Saw a seed of preparation today for ur next chapter"</p>
         </div>
 
-        <h2 class="section-title">Assigned Past Papers & Exams</h2>
+        <h2 class="section-title">Available Assessments</h2>
         <div class="papers-grid">
+            
+            <!-- Mathematics Card -->
             <div class="paper-card">
                 <div>
-                    <span class="score-badge" id="math_p1-score">Not Checked</span>
                     <h3>Mathematics</h3>
-                    <span class="date-badge">Paper 1</span>
-                    <p id="math_p1-desc">Default structural equations task sheet.</p>
+                    <span class="subject-badge">Core Assessment</span>
+                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend server.</p>
                 </div>
-                <button onclick="startExamSequence('math_p1')">Attempt Paper</button>
-                <div id="math_p1-corrections" class="hidden" style="margin-top:15px; font-size:0.9rem; color:var(--success-green); font-weight:bold;"></div>
+                <button onclick="fetchExamAndInitialize('math')">Attempt Paper</button>
             </div>
 
+            <!-- Science Card -->
             <div class="paper-card">
                 <div>
-                    <span class="score-badge" id="math_p2-score">Not Checked</span>
-                    <h3>Mathematics</h3>
-                    <span class="date-badge">Paper 2</span>
-                    <p id="math_p2-desc">Default calculus mechanics profile template.</p>
+                    <h3>Science</h3>
+                    <span class="subject-badge">Core Assessment</span>
+                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend server.</p>
                 </div>
-                <button onclick="startExamSequence('math_p2')">Attempt Paper</button>
-                <div id="math_p2-corrections" class="hidden" style="margin-top:15px; font-size:0.9rem; color:var(--success-green); font-weight:bold;"></div>
+                <button onclick="fetchExamAndInitialize('science')">Attempt Paper</button>
             </div>
 
+            <!-- English Card -->
             <div class="paper-card">
                 <div>
-                    <span class="score-badge" id="chem_p1-score">Not Checked</span>
-                    <h3>Chemistry</h3>
-                    <span class="date-badge">Paper 1</span>
-                    <p id="chem_p1-desc">Atomic structures distribution metrics.</p>
+                    <h3>English</h3>
+                    <span class="subject-badge">Core Assessment</span>
+                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend server.</p>
                 </div>
-                <button onclick="startExamSequence('chem_p1')">Attempt Paper</button>
-                <div id="chem_p1-corrections" class="hidden" style="margin-top:15px; font-size:0.9rem; color:var(--success-green); font-weight:bold;"></div>
+                <button onclick="fetchExamAndInitialize('english')">Attempt Paper</button>
             </div>
-        </div>
-
-        <div class="teacher-portal">
-            <h2 style="margin-top:0;">👨‍🏫 Appearich Instructor Panel</h2>
-            <div class="admin-box">
-                <h3 style="margin-top:0; color:var(--dark-charcoal);">1. Deploy/Upload Exam Questions</h3>
-                <label>Select Target Exam Card:</label>
-                <select id="upload-target-select" class="input-item">
-                    <option value="math_p1">Mathematics - Paper 1</option>
-                    <option value="math_p2">Mathematics - Paper 2</option>
-                    <option value="chem_p1">Chemistry - Paper 1</option>
-                </select>
-                <label>Type Exam Task Instructions/Questions:</label>
-                <textarea id="upload-question-text" class="input-item" style="height:80px;" placeholder="Question 1: Solve for x..."></textarea>
-                <button onclick="teacherUploadExam()" style="background:var(--dark-charcoal); color:var(--primary-yellow); border:none; padding:10px 20px; font-weight:bold; border-radius:4px; cursor:pointer;">Publish Exam Questions</button>
-            </div>
-
-            <div class="admin-box" id="grading-box">
-                <h3 style="margin-top:0;">2. Review Student Script, Update Scores & Corrections</h3>
-                <p>Status: <span id="grading-status" style="font-weight:bold; color:var(--danger-red);">Waiting for submission...</span></p>
-                <label>Score (Out of 100):</label>
-                <input type="number" id="teacher-score" class="input-item">
-                <label>Corrections and Remarks:</label>
-                <textarea id="teacher-remarks" class="input-item" style="height:60px;"></textarea>
-                <button onclick="publishGradesAndCorrections()" style="background:var(--dark-charcoal); color:var(--primary-yellow); border:none; padding:10px 20px; font-weight:bold; border-radius:4px; cursor:pointer;">Publish Grade & Corrections</button>
-            </div>
+            
         </div>
     </div>
 
+    <!-- RUNTIME TEST WORKSPACE -->
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window" id="secure-container-frame">
             
+            <!-- SECURE CURTAIN COVER SYSTEM -->
             <div id="secure-blankout-curtain" class="hidden">
                 <div style="color:var(--primary-yellow); font-size:2rem; margin-bottom:10px;">⚠️ PROTECTION LOCK ACTIVE</div>
-                <p style="margin:0; padding:0 20px; font-size:1.1rem; color:#cbd5e1;">Exam text availability is hidden automatically due to window focus loss. Auto-submitting...</p>
+                <p style="margin:0; padding:0 20px; font-size:1.1rem; color:#cbd5e1;">Content unavailable due to focus loss violations. Auto-submitting to server...</p>
             </div>
 
             <span class="timer">Time Left: <span id="time-display">00:00</span></span>
@@ -191,6 +162,7 @@
         </div>
     </div>
 
+    <!-- SCANNING UPLOADER MENU -->
     <div id="upload-workspace-screen" class="app-container hidden">
         <div class="upload-window">
             <h2>Upload Answer Sheets</h2>
@@ -204,20 +176,18 @@
         </div>
     </div>
 
+    <!-- TERMINAL SECURITY SCREEN LOCK -->
     <div id="lockout-screen" class="warning-screen hidden">
         <h1 style="color:var(--danger-red); font-size:3rem;">EXAM CLOSED & AUTO-SUBMITTED</h1>
-        <p style="max-width:600px; font-size:1.2rem;">You shifted windows, attempted a screenshot shortcut, or left the tracking zone. The exam content was hidden instantly to protect test integrity and your partial workspace has been forced over to self-submission status.</p>
+        <p style="max-width:600px; font-size:1.2rem;">A window layout shift or focus distraction was verified. To maintain test security, visibility was hidden instantly and your current progress data was uploaded to your instructor's server.</p>
         <button onclick="location.reload()" style="background:var(--primary-yellow); border:none; color:black; padding:12px 30px; font-weight:bold; border-radius:6px; cursor:pointer;">Return to Dashboard</button>
     </div>
 
     <script>
-        const examRepository = {
-            math_p1: { title: "Mathematics (Paper 1)", duration: 600, questions: "Please await teacher question document publication uploads." },
-            math_p2: { title: "Mathematics (Paper 2)", duration: 900, questions: "Please await teacher question document publication uploads." },
-            chem_p1: { title: "Chemistry (Paper 1)", duration: 1200, questions: "Please await teacher question document publication uploads." }
-        };
-
-        let activeTimer, timeLeft, isExamActive = false, currentGradingKey = "";
+        let activeTimer, timeLeft, isExamActive = false, currentSubjectKey = "";
+        
+        // Define your central server base domain connection here
+        const SERVER_BASE_URL = "https://your-server-domain.com/api";
 
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
@@ -230,28 +200,36 @@
             }, 2000); 
         });
 
-        function teacherUploadExam() {
-            const target = document.getElementById('upload-target-select').value;
-            const text = document.getElementById('upload-question-text').value;
-            if(!text.trim()) { alert("Please type questions before publishing!"); return; }
-            examRepository[target].questions = text;
-            document.getElementById(`${target}-desc`).innerText = text.substring(0, 60) + "... (Questions Loaded)";
-            alert("Success! Your questions have been successfully loaded onto the chosen card.");
-            document.getElementById('upload-question-text').value = '';
+        // LIVE SERVER HOOK: Fetches questions and dynamic time limits directly from your API
+        function fetchExamAndInitialize(subjectKey) {
+            currentSubjectKey = subjectKey;
+            
+            // Example Request: https://your-server-domain.com/api/get-exam?subject=math
+            fetch(`${SERVER_BASE_URL}/get-exam?subject=${subjectKey}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Exam profile could not be loaded from server.");
+                    return res.json();
+                })
+                .then(data => {
+                    // Expecting server response format: { title: "...", durationSeconds: 3600, questionContent: "..." }
+                    startExamSequence(data.title, data.durationSeconds, data.questionContent);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Connection Error: Unable to sync test sheets from the database server.");
+                });
         }
 
-        function startExamSequence(paperKey) {
-            currentGradingKey = paperKey;
-            const currentPaper = examRepository[paperKey];
-            timeLeft = currentPaper.duration;
+        function startExamSequence(title, duration, questions) {
+            timeLeft = duration;
             isExamActive = true;
 
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.remove('hidden');
-            document.getElementById('exam-title-header').innerText = currentPaper.title;
+            document.getElementById('exam-title-header').innerText = title;
 
             let injectionBox = document.getElementById('questions-injection-box');
-            injectionBox.innerHTML = `<div class="question-box"><p style="white-space: pre-wrap;">${currentPaper.questions}</p></div>`;
+            injectionBox.innerHTML = `<div class="question-box"><p style="white-space: pre-wrap;">${questions}</p></div>`;
 
             activeTimer = setInterval(() => {
                 if(timeLeft <= 0) { clearInterval(activeTimer); finishExamAndGoToUpload(); }
@@ -262,13 +240,12 @@
                 }
             }, 1000);
 
-            // MONITORS FOR IMMEDIATE BLANKING & FORCE SUBMISSION
+            // ANTI-CHEAT LISTENERS
             document.addEventListener('visibilitychange', handleStrictDefection);
             window.addEventListener('blur', handleStrictDefection);
             document.addEventListener('mouseleave', blankAndSubmitImmediately);
             window.addEventListener('resize', verifyDisplayDimensions);
             
-            // Block keyboard shortcuts often tied to screenshots (e.g. PrintScreen, Snipping tool combos)
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'PrintScreen' || (e.metaKey && e.shiftKey) || (e.ctrlKey && e.match(/p/i))) {
                     e.preventDefault();
@@ -280,11 +257,8 @@
         function handleStrictDefection() { if (isExamActive && (document.hidden || !document.hasFocus())) blankAndSubmitImmediately(); }
         function verifyDisplayDimensions() { if (isExamActive && (window.innerWidth < 850 || window.innerHeight < 550)) blankAndSubmitImmediately(); }
         
-        // INSTANT SECURITY BLANK-OUT MASKING FUNCTION
         function blankAndSubmitImmediately() {
             if (!isExamActive) return;
-            
-            // Instantly mask the question window from screen rendering/capturing completely
             document.getElementById('secure-blankout-curtain').classList.remove('hidden');
             
             isExamActive = false; 
@@ -295,13 +269,25 @@
             document.removeEventListener('mouseleave', blankAndSubmitImmediately);
             window.removeEventListener('resize', verifyDisplayDimensions);
 
+            // Payload sent upstream to your server reporting cheat status
+            const violationPayload = {
+                subject: currentSubjectKey,
+                logStatus: "AUTO_SUBMIT_VIOLATION",
+                timeRemaining: timeLeft,
+                timestamp: new Date().toISOString()
+            };
+
+            fetch(`${SERVER_BASE_URL}/auto-submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(violationPayload)
+            }).catch(e => console.error("Emergency sync packet failed:", e));
+
             setTimeout(() => {
-                document.getElementById('grading-status').innerText = `⚠️ AUTO-SUBMITTED DUE TO SCREEN VIOLATION!`;
-                document.getElementById('grading-status').style.color = "var(--danger-red)";
                 document.getElementById('exam-workspace-screen').classList.add('hidden');
                 document.getElementById('secure-blankout-curtain').classList.add('hidden');
                 document.getElementById('lockout-screen').classList.remove('hidden');
-            }, 300); // 300ms delay to enforce data lockdown instantly
+            }, 300);
         }
 
         function finishExamAndGoToUpload() {
@@ -316,32 +302,29 @@
 
         function finalSystemSubmit(e) {
             e.preventDefault();
-            alert("Upload Complete! Documents sent to instructor dashboard.");
-            document.getElementById('upload-workspace-screen').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            document.getElementById('grading-status').innerText = `📄 Document Sheet Received (Ready to mark)`;
-            document.getElementById('grading-status').style.color = "var(--success-green)";
-        }
+            const files = document.querySelector('input[type="file"]').files;
+            if (files.length === 0) return;
 
-        function publishGradesAndCorrections() {
-            const score = document.getElementById('teacher-score').value;
-            const remarks = document.getElementById('teacher-remarks').value;
-            if(!score || !remarks || !currentGradingKey) { alert("Ensure you choose an exam, score, and remarks parameter set first."); return; }
+            const formData = new FormData();
+            formData.append('subject', currentSubjectKey);
+            for (let i = 0; i < files.length; i++) {
+                formData.append('student_scripts', files[i]);
+            }
 
-            const scoreBadge = document.getElementById(`${currentGradingKey}-score`);
-            scoreBadge.innerText = `${score} / 100 Pts`;
-            scoreBadge.style.background = "var(--success-green)";
-            scoreBadge.style.color = "white";
-
-            const correctionsBox = document.getElementById(`${currentGradingKey}-corrections`);
-            correctionsBox.innerText = `Corrections / Feedback: "${remarks}"`;
-            correctionsBox.classList.remove('hidden');
-
-            document.getElementById('teacher-score').value = '';
-            document.getElementById('teacher-remarks').value = '';
-            document.getElementById('grading-status').innerText = "Waiting for submission...";
-            document.getElementById('grading-status').style.color = "var(--danger-red)";
-            alert("Grades and corrections pushed to student card successfully!");
+            fetch(`${SERVER_BASE_URL}/upload-answers`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Upload Complete! Documents sent safely to your instructor database server.");
+                document.getElementById('upload-workspace-screen').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Upload error encountered. Please check connection parameters.");
+            });
         }
     </script>
 </body>
