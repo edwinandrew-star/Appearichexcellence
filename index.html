@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam & Past Papers Portal</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .hidden { display: none !important; }
+
+        /* 1. SPLASH SCREEN (Shows your Logo) */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .logo-animation img {
+            width: 150px; /* Adjust based on your logo size */
+            height: auto;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* MAIN APP CONTAINER */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 2. TOP HERO IMAGE & QUOTE */
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            /* Points directly to your background image file */
+            background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)), url('images/banner.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .hero-banner h1 { margin: 0 0 10px 0; font-size: 2.8rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .hero-banner p { margin: 0; font-style: italic; font-size: 1.3rem; max-width: 600px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+
+        /* 3. PAST PAPERS 3x3 GRID WITH THUMBNAILS */
+        .section-title {
+            font-size: 1.75rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 10px;
+        }
+        .papers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+        @media (max-width: 768px) {
+            .papers-grid { grid-template-columns: 1fr; }
+        }
+        .paper-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden; /* Cleans the image edges at the top */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .paper-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover; /* Prevents stretching */
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .paper-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .paper-card h3 { margin: 0 0 8px 0; color: var(--primary); font-size: 1.2rem; }
+        .paper-card p { margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; line-height: 1.4; }
+        .paper-card button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .paper-card button:hover { background: #1d4ed8; }
+
+        /* 4. ACTIVE EXAM VIEW */
+        .exam-window {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--danger);
+            background: #fee2e2;
+            padding: 8px 12px;
+            border-radius: 6px;
+            float: right;
+        }
+        .question-item {
+            background: #f1f5f9;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary);
+            border-radius: 0 6px 6px 0;
+        }
+        .warning-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            color: white; z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="logo-animation">
+            <img src="images/logo.png" alt="Portal Logo">
+        </div>
+    </div>
+
+    <div id="main-dashboard" class="app-container hidden">
+        
+        <div class="hero-banner">
+            <h1>Student Portal</h1>
+            <p>"Strive for progress, not perfection. Your future depends on what you do today."</p>
+        </div>
+
+        <h2 class="section-title">Available Past Papers & Exams</h2>
+        <div class="papers-grid">
+            <div class="paper-card">
+                <img src="images/math-thumb.jpg" class="paper-thumb" alt="Math">
+                <div class="paper-content">
+                    <h3>Mathematics - Quiz 1</h3>
+                    <p>Topics: Algebra, Linear Equations. Time limit: 10 mins.</p>
+                    <button onclick="openExam('math')">Take Exam</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/chemistry-thumb.jpg" class="paper-thumb" alt="Chemistry">
+                <div class="paper-content">
+                    <h3>Chemistry - Midterm</h3>
+                    <p>Topics: Molecular bonds, Gas laws. Time limit: 15 mins.</p>
+                    <button onclick="openExam('chemistry')">Take Exam</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/history-thumb.jpg" class="paper-thumb" alt="History">
+                <div class="paper-content">
+                    <h3>World History - Essay</h3>
+                    <p>Topics: World War I origins. Time limit: 20 mins.</p>
+                    <button onclick="openExam('history')">Take Exam</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/physics-thumb.jpg" class="paper-thumb" alt="Physics">
+                <div class="paper-content">
+                    <h3>Physics - Mechanics</h3>
+                    <p>Topics: Velocity, Force vectors. Practice Mode.</p>
+                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/biology-thumb.jpg" class="paper-thumb" alt="Biology">
+                <div class="paper-content">
+                    <h3>Biology - Genetics</h3>
+                    <p>Topics: DNA structures, RNA processing.</p>
+                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/english-thumb.jpg" class="paper-thumb" alt="English">
+                <div class="paper-content">
+                    <h3>English - Literature</h3>
+                    <p>Topics: Essay writing parameters.</p>
+                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/geography-thumb.jpg" class="paper-thumb" alt="Geography">
+                <div class="paper-content">
+                    <h3>Geography - GIS</h3>
+                    <p>Topics: Spatial mapping profiles.</p>
+                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/cs-thumb.jpg" class="paper-thumb" alt="Computer Science">
+                <div class="paper-content">
+                    <h3>Computer Science</h3>
+                    <p>Topics: Array manipulation data structures.</p>
+                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
+                </div>
+            </div>
+            <div class="paper-card">
+                <img src="images/economics-thumb.jpg" class="paper-thumb" alt="Economics">
+                <div class="paper-content">
+                    <h3>Economics - Macro</h3>
+                    <p>Topics: Supply, Demand elasticities.</p>
+                    <button onclick="alert('Demo placeholder paper')">View Paper</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="active-exam-portal" class="app-container hidden">
+        <div class="exam-window">
+            <span class="timer">Time Left: <span id="time-display">00:00</span></span>
+            <h2 id="current-exam-title">Exam</h2>
+            <hr>
+            <form id="exam-form" onsubmit="finishExam(event)">
+                <div id="dynamic-questions-box"></div>
+                <button type="submit" style="background: var(--primary); color: white; padding: 12px; border: none; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer;">Submit Responses</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="lockout-screen" class="warning-screen hidden">
+        <h1 style="color: var(--danger);">Exam Terminated!</h1>
+        <p>Anti-cheating window trigger locked this session.</p>
+        <button onclick="location.reload()" style="width: auto; padding: 10px 20px;">Return Home</button>
+    </div>
+
+    <script>
+        const localExams = {
+            math: { title: "Mathematics - Quiz 1", duration: 600, questions: ["Solve: 3x + 7 = 22", "Upload math file work proofs."] },
+            chemistry: { title: "Chemistry - Midterm", duration: 900, questions: ["What is the weight of H2O?", "Upload structural drawing images."] },
+            history: { title: "World History - Essay", duration: 1200, questions: ["Describe the triggers of WWI."] }
+        };
+
+        let clock, timeLeft, cheatingStrikes = 0, examRunning = false;
+
+        // Splash Screen Logic (2 seconds)
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = 0;
+                setTimeout(() => {
+                    splash.classList.add('hidden');
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                }, 500);
+            }, 2000); 
+        });
+
+        function openExam(key) {
+            const data = localExams[key];
+            timeLeft = data.duration;
+            examRunning = true;
+
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('active-exam-portal').classList.remove('hidden');
+            document.getElementById('current-exam-title').innerText = data.title;
+
+            let box = document.getElementById('dynamic-questions-box');
+            box.innerHTML = '';
+            data.questions.forEach((q, i) => {
+                box.innerHTML += `
+                    <div class="question-item">
+                        <p><strong>Q${i+1}:</strong> ${q}</p>
+                        <input type="text" placeholder="Write answers here" required style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
+                        <input type="file" accept="image/*" style="margin-top:5px;">
+                    </div>`;
+            });
+
+            clock = setInterval(() => {
+                if(timeLeft <= 0) { clearInterval(clock); alert("Time's Up!"); finishExam(); }
+                else {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft/60), s = timeLeft%60;
+                    document.getElementById('time-display').innerText = `${m}:${s.toString().padStart(2,'0')}`;
+                }
+            }, 1000);
+
+            document.addEventListener('visibilitychange', checkCheating);
+            window.addEventListener('blur', checkCheating);
+            window.addEventListener('resize', checkResize);
+        }
+
+        function checkCheating() {
+            if(!examRunning) return;
+            if (document.hidden || !document.hasFocus()) {
+                cheatingStrikes++;
+                if(cheatingStrikes >= 2) triggerLockout();
+                else alert("Security Warning: Do not swap tabs or click outside!");
+            }
+        }
+
+        function checkResize() {
+            if(!examRunning) return;
+            if(window.innerWidth < 800) {
+                cheatingStrikes++;
+                if(cheatingStrikes >= 2) triggerLockout();
+                else alert("Security Warning: Split-screens or window resizes are restricted!");
+            }
+        }
+
+        function triggerLockout() {
+            examRunning = false; clearInterval(clock);
+            document.getElementById('active-exam-portal').classList.add('hidden');
+            document.getElementById('lockout-screen').classList.remove('hidden');
+        }
+
+        function finishExam(e) {
+            if(e) e.preventDefault();
+            examRunning = false; clearInterval(clock);
+            alert("Exam submitted successfully!");
+            location.reload();
+        }
+    </script>
+</body>
+</html>
