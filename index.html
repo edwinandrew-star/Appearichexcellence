@@ -202,11 +202,16 @@
             fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
         }
 
-        // Returns true if browser window is minimized, split, or scaled down from actual hardware dimensions
+        // Accurately checks if the window is fully expanded over the system workspace bounds
         function checkFullScreenEnforcement() {
-            const widthTolerance = window.screen.width * 0.90; 
-            const heightTolerance = window.screen.height * 0.85; 
-            return (window.innerWidth >= widthTolerance && window.innerHeight >= heightTolerance);
+            const availableWidth = window.screen.availWidth;
+            const availableHeight = window.screen.availHeight;
+            
+            // Allows a slight 40px window border tolerance for varying operating system themes
+            const isWidthMaximized = window.outerWidth >= (availableWidth - 40);
+            const isHeightMaximized = window.outerHeight >= (availableHeight - 40);
+            
+            return (isWidthMaximized && isHeightMaximized);
         }
 
         function loadLocalExam(subjectKey) {
@@ -215,16 +220,16 @@
 
             currentSubjectKey = subjectKey;
 
-            // Strict Cutoff: Check if user has already hit 2 lockouts (Blocks 3rd attempt onward)
+            // Strict Cutoff Check: Permanent lock on the 3rd instance entry (Stops 3rd attempt onward)
             let lockoutCount = parseInt(localStorage.getItem(`lockouts_${subjectKey}`) || "0");
             if (lockoutCount >= 2 || localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
                 showStrictLockoutScreen("cheated");
                 return;
             }
 
-            // Split-Screen/Window Scale Gate Check
+            // Reliable Maximized Window & Split-Screen Check
             if (!checkFullScreenEnforcement()) {
-                alert("❌ ACCESS DENIED:\nYour screen layout is not full-sized. Please maximize your browser window or disable split-screen view to attempt this exam.");
+                alert("❌ ACCESS DENIED:\nYour browser window is not full size. Please maximize your browser window to regular full-screen capacity to attempt this exam layout.");
                 return;
             }
 
@@ -322,7 +327,6 @@
 
             let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0");
 
-            // Locks out permanently on the 3rd index registration
             if (lockouts >= 2 || type === "cheated") {
                 document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
