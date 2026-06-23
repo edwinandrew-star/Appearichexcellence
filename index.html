@@ -179,7 +179,6 @@
 
         let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
-        // PRIVACY INPUT BLOCKERS
         document.addEventListener('contextmenu', event => event.preventDefault()); 
         document.addEventListener('selectstart', event => event.preventDefault()); 
         
@@ -228,7 +227,6 @@
             currentSubjectKey = localStorage.getItem('active_subject_key') || "";
             if (currentSubjectKey) {
                 selectedSubjectTitle = localExamsData[currentSubjectKey].title;
-                // If a deadline timestamp is found, keep the exam active on page reload
                 if (localStorage.getItem('exam_deadline_timestamp')) {
                     isExamActive = true;
                 }
@@ -241,23 +239,20 @@
                 syncWithRemoteGistServer();
             }, 2000); 
 
-            // High priority clock cycle interval loop running every 1 second
             globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
         });
 
         function executeGlobalClockTick() {
-            // Run server checking loops inside the execution frame
             syncWithRemoteGistServer();
 
             const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
             if (!deadlineStr || !currentSubjectKey) return;
 
             const targetDeadline = parseInt(deadlineStr);
-            const now = Date.now(); // Reads directly from physical system clock hardware
+            const now = Date.now(); 
             const remainingSeconds = Math.round((targetDeadline - now) / 1000);
 
             if (remainingSeconds <= 0) {
-                // Time has naturally completed inside absolute hardware tracking space
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
                 localStorage.removeItem('exam_deadline_timestamp');
                 localStorage.removeItem('active_subject_key');
@@ -283,25 +278,32 @@
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
-                    localStorage.clear();
+                    // FIX: Remove ONLY the cheating penalty flags, keep the running deadline tracking intact!
+                    const subjects = ['math', 'science', 'english'];
+                    subjects.forEach(k => localStorage.removeItem(`status_${k}`));
+                    
                     document.getElementById('lockout-screen').classList.add('hidden');
                     document.getElementById('restored-screen').classList.add('hidden');
+                    
                     if (checkFullScreenEnforcement()) {
-                        document.getElementById('main-dashboard').classList.remove('hidden');
+                        if (isExamActive) {
+                            // Instantly put her straight back into the running exam window
+                            document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                            document.getElementById('main-dashboard').classList.add('hidden');
+                        } else {
+                            document.getElementById('main-dashboard').classList.remove('hidden');
+                        }
                     }
                     return;
                 }
             } catch (e) {}
 
-            // CRITICAL TRACKING ENFORCEMENT
             if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
             } else if (checkFullScreenEnforcement()) {
-                // Only pull up dashboard if she hasn't activated an exam session
                 if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
-                    // Restore active workspace view seamlessly if layout was cleared
                     document.getElementById('exam-workspace-screen').classList.remove('hidden');
                     document.getElementById('lockout-screen').classList.add('hidden');
                 }
@@ -332,7 +334,7 @@
 
         function sendWhatsappNotification(messageText) {
             try {
-                fetch://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
+                fetch(`https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
             } catch (e) {}
         }
 
@@ -351,9 +353,11 @@
             selectedSubjectTitle = exam.title; 
             isExamActive = true;
 
-            // Generate an absolute termination timestamp based on system millisecond data
-            const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
-            localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
+            // Only generate a new timestamp deadline if one doesn't exist yet!
+            if (!localStorage.getItem('exam_deadline_timestamp')) {
+                const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
+                localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
+            }
             localStorage.setItem('active_subject_key', subjectKey);
 
             sendWhatsappNotification(`📢 ALERT: Student started "${selectedSubjectTitle}".`);
@@ -388,11 +392,8 @@
 
         function handleViolationLockout() {
             if (!isExamActive) return;
-            
-            // Log violation status flag locally to keep interface blocked
             localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
             sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or screenshot attempted for "${selectedSubjectTitle}"! Screen locked.`);
-            
             showStrictLockoutScreen();
         }
 
