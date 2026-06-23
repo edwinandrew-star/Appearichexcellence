@@ -208,11 +208,14 @@
 
         window.addEventListener('resize', runMainScreenEnforcement);
 
-        // STABLE SEAMLESS RECOVERY HOOKS
+        // SECURE NETWORKING & TAB FOCUS MONITOR
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 calculateTimeRemaining();
-                syncWithRemoteGistServer();
+                // Delay 3 seconds on wake so hardware Wi-Fi registers cleanly before making the network fetch
+                setTimeout(() => {
+                    syncWithRemoteGistServer();
+                }, 3000);
             } else {
                 if (isExamActive && !isBypassingLockChecks) {
                     handleViolationLockout();
@@ -287,6 +290,8 @@
         }
 
         async function syncWithRemoteGistServer() {
+            if (!navigator.onLine) return; // Drop execution if the network card is offline to prevent JS crashing
+
             try {
                 const forcingCounter = Date.now();
                 const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`).catch(() => null);
@@ -295,7 +300,6 @@
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
-                    // ACTIVATE BYPASS ON UNLOCK COMMAND TO AVOID CONCURRENT LOOP LOX
                     isBypassingLockChecks = true;
                     
                     const subjects = ['math', 'science', 'english'];
@@ -308,7 +312,6 @@
                     const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
                     if (hasDeadline) {
                         isExamActive = true; 
-                        // Re-inject exam content dynamically so she stays on the exact same session
                         const exam = localExamsData[currentSubjectKey];
                         document.getElementById('exam-title-header').innerText = exam.title;
                         let injectionBox = document.getElementById('questions-injection-box');
@@ -324,8 +327,7 @@
                         document.getElementById('exam-workspace-screen').classList.add('hidden');
                     }
 
-                    // Turn lock check filters back on cleanly after engine stabilization passes
-                    setTimeout(() => { isBypassingLockChecks = false; }, 2500);
+                    setTimeout(() => { isBypassingLockChecks = false; }, 4000);
                     return;
                 }
             } catch (e) {}
@@ -382,7 +384,7 @@
             
             if (!checkFullScreenEnforcement()) { 
                 localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Started exam in small layout window size context for "${localExamsData[subjectKey].title}"! Screen locked.`);
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Started exam in split or small layout screen for "${localExamsData[subjectKey].title}"! Screen locked.`);
                 showStrictLockoutScreen();
                 return; 
             }
@@ -422,7 +424,7 @@
             if (!isExamActive || isBypassingLockChecks) return;
             isExamActive = false; 
             localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or window changed layout state during "${selectedSubjectTitle}"! Screen locked.`);
+            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or computer turned to sleep during "${selectedSubjectTitle}"! Screen locked.`);
             showStrictLockoutScreen();
         }
 
