@@ -154,8 +154,8 @@
     </div>
 
     <script>
-        // PASTE YOUR RAW GITHUB GIST URL HERE
-        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/708ed8b029e1ba685c6b54544bf724d72a160343/status.%2520Json";
+        // Clean, direct endpoint link pointing straight to live raw status JSON file
+        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         const localExamsData = {
@@ -197,7 +197,6 @@
 
         async function syncWithRemoteGistServer() {
             try {
-                // Generates a random query parameter to skip browser code caching
                 const cacheBuster = Math.random().toString(36).substring(2);
                 const response = await fetch(`${REMOTE_JSON_URL}?nocache=${cacheBuster}`);
                 const data = await response.json();
@@ -267,7 +266,6 @@
             let injectionBox = document.getElementById('questions-injection-box');
             injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
 
-            // Sleep-safe time sync logic
             const endTime = Date.now() + (timeLeft * 1000);
 
             activeTimer = setInterval(() => {
@@ -286,7 +284,6 @@
         }
 
         function handleCheatingDetection() { 
-            // Only locks if the tab is strictly minimized or shifted out of view
             if (isExamActive && document.hidden) {
                 handleTimeoutClose("SECURITY_BREACH_VIOLATION"); 
             }
