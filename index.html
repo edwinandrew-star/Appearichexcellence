@@ -376,7 +376,6 @@
 
             document.getElementById('questions-injection-box').innerHTML = "";
 
-            // Track total lockout incidents
             let lockCount = parseInt(localStorage.getItem(`locks_${currentSubjectKey}`) || "0");
             lockCount++;
             localStorage.setItem(`locks_${currentSubjectKey}`, lockCount);
@@ -404,7 +403,6 @@
 
             let lockCount = parseInt(localStorage.getItem(`locks_${currentSubjectKey}`) || "0");
 
-            // ENFORCED: 3 strikes policy. Permanent cutoff happens on strike 3.
             if (lockCount >= 3) {
                 document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
@@ -413,7 +411,6 @@
                 document.getElementById('photo-confirm-btn').classList.add('hidden');
                 document.getElementById('admin-bypass-area').classList.add('hidden'); 
             } else {
-                // Strike 1 or 2: Shows password interface allowing correction recovery
                 document.getElementById('lockout-headline').innerText = "EXAM CLOSED & LOCKED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.remove('hidden');
