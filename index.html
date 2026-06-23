@@ -116,7 +116,7 @@
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">50:00</span></span>
+            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
@@ -140,7 +140,7 @@
         </div>
         <button id="photo-confirm-btn" onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
         
-        <p style="margin-top: 40px;"><a href="#" onclick="clearAllDeviceLocks()" style="color: #27272a; font-size: 0.8rem; text-decoration: none;">🔧 Unlock Exam Layout (Requires Password)</a></p>
+        <p id="unlock-link-wrapper" style="margin-top: 40px;"><a href="#" onclick="clearAllDeviceLocks()" style="color: #27272a; font-size: 0.8rem; text-decoration: none;">🔧 Unlock Exam Layout (Requires Password)</a></p>
     </div>
 
     <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
@@ -160,34 +160,28 @@
             english: "NOT ATTEMPTED"
         };
 
-        // ======================================================================
-        // EXAM STORAGE CONFIGURATION
-        // ======================================================================
         const localExamsData = {
             math: { 
                 title: "Mathematics Core Mock Exam Paper v1", 
-                durationSeconds: 3000, // 50 Minutes
+                durationSeconds: 4500, // 1 Hour 15 Minutes
                 isPdf: true, 
-                fileLink: "math-paper1q.pdf" 
+                fileLink: "math-paper1p.pdf" 
             },
             science: { 
                 title: "Science Core Practice Exam Paper v1", 
-                durationSeconds: 3000, 
+                durationSeconds: 4500, 
                 isPdf: false, 
                 fileLink: "science-sheet.png" 
             },
             english: { 
                 title: "English Core Practice Exam Paper v1", 
-                durationSeconds: 3000, 
+                durationSeconds: 4500, 
                 isPdf: true, 
                 fileLink: "english-paper.pdf" 
             }
         };
 
-        // ======================================================================
-        // SECURITY GATEWAY & ALERTS CONFIGURATION
-        // ======================================================================
-        const INSTRUCTOR_PASSWORD = "admin123"; // <-- Change your secret password here!
+        const INSTRUCTOR_PASSWORD = "admin123"; 
         const WHATSAPP_PHONE = "+255764519027"; 
         const CALLMEBOT_API_KEY = "999999"; 
 
@@ -208,24 +202,45 @@
             fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
         }
 
+        // Returns true if browser window is minimized, split, or scaled down from actual hardware dimensions
+        function checkFullScreenEnforcement() {
+            const widthTolerance = window.screen.width * 0.90; 
+            const heightTolerance = window.screen.height * 0.85; 
+            return (window.innerWidth >= widthTolerance && window.innerHeight >= heightTolerance);
+        }
+
         function loadLocalExam(subjectKey) {
             const exam = localExamsData[subjectKey];
             if (!exam) return;
+
+            currentSubjectKey = subjectKey;
+
+            // Strict Cutoff: Check if user has already hit 2 lockouts (Blocks 3rd attempt onward)
+            let lockoutCount = parseInt(localStorage.getItem(`lockouts_${subjectKey}`) || "0");
+            if (lockoutCount >= 2 || localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
+                showStrictLockoutScreen("cheated");
+                return;
+            }
+
+            // Split-Screen/Window Scale Gate Check
+            if (!checkFullScreenEnforcement()) {
+                alert("❌ ACCESS DENIED:\nYour screen layout is not full-sized. Please maximize your browser window or disable split-screen view to attempt this exam.");
+                return;
+            }
 
             // Auto-reset if title changes in configuration block
             const savedTitle = localStorage.getItem(`title_${subjectKey}`);
             if (savedTitle !== exam.title) {
                 localStorage.removeItem(`status_${subjectKey}`);
+                localStorage.removeItem(`lockouts_${subjectKey}`);
                 localStorage.setItem(`title_${subjectKey}`, exam.title);
             }
 
-            // Lockout checking
-            if(localStorage.getItem(`status_${subjectKey}`) === 'cheated' || localStorage.getItem(`status_${subjectKey}`) === 'locked') {
+            if(localStorage.getItem(`status_${subjectKey}`) === 'locked') {
                 showStrictLockoutScreen(localStorage.getItem(`status_${subjectKey}`));
                 return;
             }
             
-            currentSubjectKey = subjectKey;
             selectedSubjectTitle = exam.title; 
             timeLeft = exam.durationSeconds; 
             isExamActive = true;
@@ -277,16 +292,26 @@
 
             document.getElementById('questions-injection-box').innerHTML = "";
 
+            let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0");
+            lockouts++;
+            localStorage.setItem(`lockouts_${currentSubjectKey}`, lockouts);
+
             if (reasonCode === "SECURITY_BREACH_VIOLATION") {
-                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Access blocked permanently.`);
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Lockout Count: ${lockouts}/2.`);
+                
+                if (lockouts >= 2) {
+                    localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+                } else {
+                    localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+                }
                 showStrictLockoutScreen("cheated");
             } else {
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed normally. Reason: [${reasonCode}]. Student is taking photos.`);
+                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Lockout Count: ${lockouts}/2.`);
                 
                 document.getElementById('exam-workspace-screen').classList.add('hidden');
                 document.getElementById('lockout-screen').classList.remove('hidden');
+                showStrictLockoutScreen("locked");
             }
         }
 
@@ -295,12 +320,21 @@
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
 
-            if (type === "cheated") {
+            let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0");
+
+            // Locks out permanently on the 3rd index registration
+            if (lockouts >= 2 || type === "cheated") {
                 document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
-                document.getElementById('lockout-paragraph').innerHTML = "This exam has been flagged and shut down due to a security focus breach (cheating attempt).<br><strong>You can no longer open or view this test file.</strong>";
+                document.getElementById('lockout-paragraph').innerHTML = "This exam has been permanently terminated because the browser environment exceeded maximum system lock limits.<br><strong>You can no longer open, view, or re-attempt this test layout.</strong>";
                 document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.add('hidden');
+                document.getElementById('unlock-link-wrapper').classList.add('hidden'); 
+            } else {
+                document.getElementById('lockout-headline').innerText = "EXAM CLOSED & LOCKED";
+                document.getElementById('lockout-headline').style.color = "var(--danger-red)";
+                document.getElementById('photo-confirm-btn').classList.remove('hidden');
+                document.getElementById('unlock-link-wrapper').classList.remove('hidden');
             }
         }
 
@@ -310,13 +344,12 @@
             sendWhatsappNotification(`✅ UPDATE: Student confirmed sending calculation photos.`);
         }
 
-        // PASSWORD VERIFICATION SECURE RESET FUNCTION
         function clearAllDeviceLocks() {
             const userInput = prompt("Enter Instructor Authorization Password to Unlock Layout:");
             
             if (userInput === INSTRUCTOR_PASSWORD) {
                 localStorage.clear();
-                alert("Authorization granted. All device lockout states have been successfully cleared.");
+                alert("Authorization granted. All device lockout states and counts have been successfully cleared.");
                 location.reload();
             } else if (userInput !== null) {
                 alert("Access Denied: Incorrect password configuration.");
