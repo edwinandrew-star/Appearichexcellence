@@ -74,8 +74,6 @@
 </head>
 <body>
 
-    <input type="text" id="secure-focus-trap" style="position: absolute; opacity: 0; top: -100px; left: -100px;">
-
     <div id="screen-size-blocker" class="warning-screen hidden" style="background: #111827;">
         <span style="font-size: 5rem; margin-bottom: 20px;">🖥️</span>
         <h1 style="color: var(--primary-yellow); font-size: 2.5rem; margin: 0 0 15px 0;">FULL SCREEN REQUIRED</h1>
@@ -179,7 +177,7 @@
         const WHATSAPP_PHONE = "+255764519027"; 
         const CALLMEBOT_API_KEY = "999999"; 
 
-        let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
+        let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
         document.addEventListener('contextmenu', event => event.preventDefault()); 
         document.addEventListener('selectstart', event => event.preventDefault()); 
@@ -191,14 +189,14 @@
                 (e.ctrlKey && e.keyCode === 83) ||
                 (e.altKey && e.keyCode === 9)) { 
                 e.preventDefault();
-                if (isExamActive && checkFullScreenEnforcement()) handleViolationLockout();
+                if (isExamActive && !isBypassingLockChecks) handleViolationLockout();
                 return false;
             }
 
             if (e.key === "PrintScreen" || e.keyCode === 44) {
                 e.preventDefault();
                 navigator.clipboard.writeText("Screenshot Blocked.");
-                if (isExamActive && checkFullScreenEnforcement()) handleViolationLockout();
+                if (isExamActive && !isBypassingLockChecks) handleViolationLockout();
             }
         });
 
@@ -210,43 +208,23 @@
 
         window.addEventListener('resize', runMainScreenEnforcement);
 
-        // SECURE PRIORITY INTERCEPT EVENTS WITH FOCUS CAPTURE PIN
+        // STABLE SEAMLESS RECOVERY HOOKS
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 calculateTimeRemaining();
                 syncWithRemoteGistServer();
             } else {
-                // EXPLICIT BLOC: If split-screen is triggered, ignore browser tab change event to avoid infinite engine code freeze
-                if (!checkFullScreenEnforcement()) {
-                    forceWindowFocusCapture();
-                    return;
-                }
-                if (isExamActive) {
+                if (isExamActive && !isBypassingLockChecks) {
                     handleViolationLockout();
                 }
             }
         });
 
         window.addEventListener('blur', () => {
-            // FIX: If they split screen, forcefully drag window focus back here instead of executing lock
-            if (!checkFullScreenEnforcement()) {
-                forceWindowFocusCapture();
-                return;
-            }
-            if (isExamActive) {
+            if (isExamActive && !isBypassingLockChecks) {
                 handleViolationLockout();
             }
         });
-
-        // FORCE STEAL INTERNET EXPLORER / CHROME ACTIVE WINDOW TRACKING
-        function forceWindowFocusCapture() {
-            window.focus();
-            const trap = document.getElementById('secure-focus-trap');
-            if (trap) {
-                trap.focus();
-                trap.select();
-            }
-        }
 
         function checkGlobalPermanentLockStatus() {
             if (!currentSubjectKey) return false;
@@ -279,11 +257,6 @@
         function executeGlobalClockTick() {
             calculateTimeRemaining();
             syncWithRemoteGistServer();
-            
-            // If in split screen, constantly pull window cursor priority back onto this HTML canvas layer
-            if (!checkFullScreenEnforcement()) {
-                forceWindowFocusCapture();
-            }
         }
 
         function calculateTimeRemaining() {
@@ -322,26 +295,37 @@
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
+                    // ACTIVATE BYPASS ON UNLOCK COMMAND TO AVOID CONCURRENT LOOP LOX
+                    isBypassingLockChecks = true;
+                    
                     const subjects = ['math', 'science', 'english'];
                     subjects.forEach(k => localStorage.removeItem(`status_${k}`));
                     
                     document.getElementById('lockout-screen').classList.add('hidden');
                     document.getElementById('restored-screen').classList.add('hidden');
+                    document.getElementById('screen-size-blocker').classList.add('hidden');
                     
-                    if (checkFullScreenEnforcement()) {
-                        const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
-                        if (hasDeadline) {
-                            isExamActive = true; 
-                            document.getElementById('exam-workspace-screen').classList.remove('hidden');
-                            document.getElementById('main-dashboard').classList.add('hidden');
-                        } else {
-                            isExamActive = false;
-                            document.getElementById('main-dashboard').classList.remove('hidden');
-                            document.getElementById('exam-workspace-screen').classList.add('hidden');
+                    const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
+                    if (hasDeadline) {
+                        isExamActive = true; 
+                        // Re-inject exam content dynamically so she stays on the exact same session
+                        const exam = localExamsData[currentSubjectKey];
+                        document.getElementById('exam-title-header').innerText = exam.title;
+                        let injectionBox = document.getElementById('questions-injection-box');
+                        if(injectionBox.innerHTML === "") {
+                            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
                         }
+                        
+                        document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                        document.getElementById('main-dashboard').classList.add('hidden');
                     } else {
-                        document.getElementById('screen-size-blocker').classList.remove('hidden');
+                        isExamActive = false;
+                        document.getElementById('main-dashboard').classList.remove('hidden');
+                        document.getElementById('exam-workspace-screen').classList.add('hidden');
                     }
+
+                    // Turn lock check filters back on cleanly after engine stabilization passes
+                    setTimeout(() => { isBypassingLockChecks = false; }, 2500);
                     return;
                 }
             } catch (e) {}
@@ -363,23 +347,25 @@
         }
 
         function runMainScreenEnforcement() {
+            if (isBypassingLockChecks) return;
+            
             if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
                 return;
             }
+            
             if (!checkFullScreenEnforcement()) {
-                document.getElementById('screen-size-blocker').classList.remove('hidden');
-                document.getElementById('main-dashboard').classList.add('hidden');
-                document.getElementById('exam-workspace-screen').classList.add('hidden');
-                forceWindowFocusCapture(); // Keep focus trapped
-                if (isExamActive) handleViolationLockout();
+                if (isExamActive) {
+                    handleViolationLockout();
+                } else {
+                    document.getElementById('screen-size-blocker').classList.remove('hidden');
+                    document.getElementById('main-dashboard').classList.add('hidden');
+                    document.getElementById('exam-workspace-screen').classList.add('hidden');
+                }
             } else {
                 document.getElementById('screen-size-blocker').classList.add('hidden');
                 if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
-                } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
-                    document.getElementById('exam-workspace-screen').classList.remove('hidden');
-                    document.getElementById('lockout-screen').classList.add('hidden');
                 }
             }
         }
@@ -395,7 +381,9 @@
             if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen(); return; }
             
             if (!checkFullScreenEnforcement()) { 
-                runMainScreenEnforcement(); 
+                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Started exam in small layout window size context for "${localExamsData[subjectKey].title}"! Screen locked.`);
+                showStrictLockoutScreen();
                 return; 
             }
 
@@ -431,10 +419,10 @@
         }
 
         function handleViolationLockout() {
-            if (!isExamActive) return;
+            if (!isExamActive || isBypassingLockChecks) return;
             isExamActive = false; 
             localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-            sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or screenshot attempted for "${selectedSubjectTitle}"! Screen locked.`);
+            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or window changed layout state during "${selectedSubjectTitle}"! Screen locked.`);
             showStrictLockoutScreen();
         }
 
