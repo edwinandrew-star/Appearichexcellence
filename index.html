@@ -155,13 +155,13 @@
 
     <script>
         // PASTE YOUR RAW GITHUB GIST URL HERE
-        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/c30274246d1aa9b07e2dc5ecaa746f17eed014cb/status.%2520Json";
+        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/708ed8b029e1ba685c6b54544bf724d72a160343/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         const localExamsData = {
-            math: { title: "Mathematics Core Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math-paper1u.pdf" },
-            science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
-            english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
+            math: { title: "Mathematics Core Mock Exam Paper v1", durationSeconds: 4500, isPdf: true, fileLink: "math_paper1u.pdf" },
+            science: { title: "Science Core Practice Exam Paper v1", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
+            english: { title: "English Core Practice Exam Paper v1", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
         };
 
         const WHATSAPP_PHONE = "+255764519027"; 
@@ -197,7 +197,9 @@
 
         async function syncWithRemoteGistServer() {
             try {
-                const response = await fetch(`${REMOTE_JSON_URL}?t=${new Date().getTime()}`);
+                // Generates a random query parameter to skip browser code caching
+                const cacheBuster = Math.random().toString(36).substring(2);
+                const response = await fetch(`${REMOTE_JSON_URL}?nocache=${cacheBuster}`);
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
@@ -210,7 +212,7 @@
                     return;
                 }
             } catch (e) {
-                console.log("Remote check skipped safely");
+                console.log("Remote loop tracking offline fallback");
             }
 
             if (checkGlobalPermanentLockStatus()) {
@@ -265,7 +267,7 @@
             let injectionBox = document.getElementById('questions-injection-box');
             injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
 
-            // Sleep-safe system: Use absolute target deadlines
+            // Sleep-safe time sync logic
             const endTime = Date.now() + (timeLeft * 1000);
 
             activeTimer = setInterval(() => {
@@ -280,12 +282,11 @@
                 }
             }, 1000);
 
-            // Rely entirely on standard tab visibility layout tracking
             document.addEventListener('visibilitychange', handleCheatingDetection);
         }
 
         function handleCheatingDetection() { 
-            // Lock out ONLY if the tab is strictly hidden/minimized
+            // Only locks if the tab is strictly minimized or shifted out of view
             if (isExamActive && document.hidden) {
                 handleTimeoutClose("SECURITY_BREACH_VIOLATION"); 
             }
