@@ -13,6 +13,7 @@
             --danger-red: #dc2626;
             --success-green: #15803d;
             --card-gray: #f9fafb;
+            --step-blue: #2563eb;
         }
 
         body {
@@ -49,7 +50,10 @@
         .papers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
         @media (max-width: 768px) { .papers-grid { grid-template-columns: 1fr; } }
         .paper-card { background: var(--card-gray); border-radius: 10px; border: 2px solid #e5e7eb; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
-        .paper-card button { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .paper-card button.init-btn { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        .paper-card button.whatsapp-btn { background: var(--primary-yellow); color: #000; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; text-transform: uppercase; }
+        .paper-card button.start-btn { background: var(--success-green); color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; }
 
         /* EXAM INTERFACE */
         .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; position: relative; }
@@ -68,6 +72,7 @@
 </head>
 <body>
 
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div>
             <div class="logo-main-text">Appearich</div>
@@ -75,12 +80,14 @@
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD HUB -->
     <div id="main-dashboard" class="app-container hidden">
         <div class="hero-banner-full">
             <h1>Appearich</h1>
             <p>"Saw a seed of preparation today for ur next chapter"</p>
         </div>
 
+        <!-- LIVE GRADE VIEW -->
         <h2 class="section-title">Your Published Grades</h2>
         <div style="margin-bottom: 40px;">
             <div class="score-board">
@@ -92,24 +99,42 @@
 
         <h2 class="section-title">Available Assessments</h2>
         <div class="papers-grid">
-            <div class="paper-card">
+            <!-- MATH CARD -->
+            <div class="paper-card" id="card-math_live">
                 <h3>Mathematics</h3>
                 <p>Open the Mathematics secure digital test view layout window.</p>
-                <button onclick="handleInitialVerificationClick('math_live')">Attempt Paper</button>
+                <div class="btn-group-container">
+                    <button class="init-btn" id="init-math_live" onclick="revealVerificationSteps('math_live')">Attempt Paper</button>
+                    <button class="whatsapp-btn hidden" id="wa-math_live" onclick="triggerWhatsappRedirect('math_live')">Step 1: Send WhatsApp Notice</button>
+                    <button class="start-btn hidden" id="start-math_live" onclick="startSecureWorkspace('math_live')">Step 2: Start Exam Now</button>
+                </div>
             </div>
-            <div class="paper-card">
+
+            <!-- SCIENCE CARD -->
+            <div class="paper-card" id="card-science_live">
                 <h3>Science</h3>
                 <p>Open the Science secure digital test view layout window.</p>
-                <button onclick="handleInitialVerificationClick('science_live')">Attempt Paper</button>
+                <div class="btn-group-container">
+                    <button class="init-btn" id="init-science_live" onclick="revealVerificationSteps('science_live')">Attempt Paper</button>
+                    <button class="whatsapp-btn hidden" id="wa-science_live" onclick="triggerWhatsappRedirect('science_live')">Step 1: Send WhatsApp Notice</button>
+                    <button class="start-btn hidden" id="start-science_live" onclick="startSecureWorkspace('science_live')">Step 2: Start Exam Now</button>
+                </div>
             </div>
-            <div class="paper-card">
+
+            <!-- ENGLISH CARD -->
+            <div class="paper-card" id="card-english_live">
                 <h3>English</h3>
                 <p>Open the English secure digital test view layout window.</p>
-                <button onclick="handleInitialVerificationClick('english_live')">Attempt Paper</button>
+                <div class="btn-group-container">
+                    <button class="init-btn" id="init-english_live" onclick="revealVerificationSteps('english_live')">Attempt Paper</button>
+                    <button class="whatsapp-btn hidden" id="wa-english_live" onclick="triggerWhatsappRedirect('english_live')">Step 1: Send WhatsApp Notice</button>
+                    <button class="start-btn hidden" id="start-english_live" onclick="startSecureWorkspace('english_live')">Step 2: Start Exam Now</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- WORKSPACE PANEL -->
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
             <span class="timer">Time Left: <span id="time-display">75:00</span></span>
@@ -120,6 +145,7 @@
         </div>
     </div>
 
+    <!-- TIMEOUT & LOCKOUT SCREEN -->
     <div id="lockout-screen" class="warning-screen hidden">
         <h1 id="lockout-headline" style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">EXAM CLOSED & LOCKED</h1>
         <p id="lockout-paragraph" style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
@@ -137,6 +163,7 @@
         <button id="photo-confirm-btn" onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
     </div>
 
+    <!-- PENDING MARKING SCREEN -->
     <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
         <span style="font-size: 4rem;">⏳</span>
         <h1 style="color:var(--primary-yellow); font-size:2.8rem; margin:10px 0;">WAIT FOR THE SCORE</h1>
@@ -154,11 +181,10 @@
             english: "NOT ATTEMPTED"
         };
 
-        // EXAM REPOSITORY - DURATION TIMERS CONFIGURED TO 4500 SECONDS (1 HR 15 MINS)
         const localExamsData = {
             math_live: { 
                 title: "Mathematics Core Mock Exam Paper v1", 
-                durationSeconds: 4500, 
+                durationSeconds: 4500, // 1 hour 15 mins
                 isPdf: true, 
                 fileLink: "math-paper1a.pdf" 
             },
@@ -179,7 +205,6 @@
         const DIRECT_TEACHER_PHONE = "255764519027"; 
 
         let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
-        let pendingSubjectSetupKey = null; 
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
@@ -191,39 +216,39 @@
             }, 2000); 
         });
 
-        function handleInitialVerificationClick(subjectKey) {
+        // STEP A: Checks lock status and opens validation process buttons
+        function revealVerificationSteps(subjectKey) {
             const exam = localExamsData[subjectKey];
             if (!exam) return;
 
+            // Automatically wipe old memory states if you change the title on GitHub
             const savedTitle = localStorage.getItem(`title_${subjectKey}`);
             if (savedTitle !== exam.title) {
                 localStorage.removeItem(`status_${subjectKey}`);
                 localStorage.setItem(`title_${subjectKey}`, exam.title);
             }
 
+            // Lock verification check
             if(localStorage.getItem(`status_${subjectKey}`) === 'cheated' || localStorage.getItem(`status_${subjectKey}`) === 'locked') {
                 showStrictLockoutScreen(localStorage.getItem(`status_${subjectKey}`));
                 return;
             }
 
-            pendingSubjectSetupKey = subjectKey; 
-
-            // TEXT CHANGED TO PRECISELY: "Starting right now."
-            const secureMessageText = "Starting right now.";
-            const mobileWhatsappGatewayUrl = `https://wa.me/${DIRECT_TEACHER_PHONE}?text=${encodeURIComponent(secureMessageText)}`;
-            
-            window.open(mobileWhatsappGatewayUrl, '_blank');
-            window.addEventListener('focus', processWorkspaceInjectionOnReturn);
+            // Swap UI to reveal step verification framework
+            document.getElementById(`init-${subjectKey}`).classList.add('hidden');
+            document.getElementById(`wa-${subjectKey}`).classList.remove('hidden');
+            document.getElementById(`start-${subjectKey}`).classList.remove('hidden');
         }
 
-        function processWorkspaceInjectionOnReturn() {
-            window.removeEventListener('focus', processWorkspaceInjectionOnReturn);
-            
-            if (!pendingSubjectSetupKey) return;
-            
-            const subjectKey = pendingSubjectSetupKey;
-            pendingSubjectSetupKey = null; 
-            
+        // STEP B: Opens up target text message directly inside WhatsApp app
+        function triggerWhatsappRedirect(subjectKey) {
+            const secureMessageText = "Starting right now.";
+            const mobileWhatsappGatewayUrl = `https://wa.me/${DIRECT_TEACHER_PHONE}?text=${encodeURIComponent(secureMessageText)}`;
+            window.open(mobileWhatsappGatewayUrl, '_blank');
+        }
+
+        // STEP C: Fires up clean testing space and links cheat logs securely
+        function startSecureWorkspace(subjectKey) {
             const exam = localExamsData[subjectKey];
             currentSubjectKey = subjectKey;
             selectedSubjectTitle = exam.title; 
@@ -253,10 +278,11 @@
                 }
             }, 1000);
 
+            // Activate monitoring setup safely 
             setTimeout(() => {
                 document.addEventListener('visibilitychange', handleCheatingDetection);
                 window.addEventListener('blur', handleCheatingDetection);
-            }, 1000);
+            }, 500);
         }
 
         function handleCheatingDetection() {
@@ -289,7 +315,6 @@
             }
         }
 
-        // LOCKOUT VIEW LOGIC
         function showStrictLockoutScreen(type) {
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
