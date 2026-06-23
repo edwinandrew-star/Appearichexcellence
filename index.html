@@ -68,6 +68,16 @@
 </head>
 <body>
 
+    <div id="screen-size-blocker" class="warning-screen hidden" style="background: #111827;">
+        <span style="font-size: 5rem; margin-bottom: 20px;">🖥️</span>
+        <h1 style="color: var(--primary-yellow); font-size: 2.5rem; margin: 0 0 15px 0;">FULL SCREEN REQUIRED</h1>
+        <p style="max-width: 600px; font-size: 1.2rem; color: #e5e7eb; line-height: 1.6; margin-bottom: 25px;">
+            Appearich Portal has detected that your browser window is minimized or in split-screen mode.<br>
+            <strong>You cannot view the dashboard or attempt tasks in this layout state.</strong>
+        </p>
+        <p style="color: #9ca3af; font-size: 1rem;">Please maximize your browser window or press <strong>F11</strong> to continue.</p>
+    </div>
+
     <div id="splash-screen">
         <div>
             <div class="logo-main-text">Appearich</div>
@@ -139,7 +149,7 @@
             </ol>
         </div>
         <button id="photo-confirm-btn" onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
-        
+         
         <p id="unlock-link-wrapper" style="margin-top: 40px;"><a href="#" onclick="clearAllDeviceLocks()" style="color: #52525b; font-size: 0.85rem; text-decoration: underline; cursor: pointer;">🔧 Unlock Exam Layout (Requires Password)</a></p>
     </div>
 
@@ -162,7 +172,7 @@
 
         const localExamsData = {
             math: { 
-                title: "Mathematics Core Mock Exam Paper v1", 
+                title: "Mathematics Core Exam Paper", 
                 durationSeconds: 4500, 
                 isPdf: true, 
                 fileLink: "math-paper1g.pdf" 
@@ -171,44 +181,69 @@
                 title: "Science Core Practice Exam Paper v1", 
                 durationSeconds: 4500, 
                 isPdf: false, 
-                fileLink: "science-sheet.png" 
+                fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" 
             },
             english: { 
                 title: "English Core Practice Exam Paper v1", 
                 durationSeconds: 4500, 
                 isPdf: true, 
-                fileLink: "english-paper.pdf" 
+                fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" 
             }
         };
 
         const INSTRUCTOR_PASSWORD = "admin123"; 
-        const SECRET_SUPER_PASSWORD = "world"; // The 4th attempt password rule
+        const SECRET_SUPER_PASSWORD = "world"; // 4th attempt super password
         const WHATSAPP_PHONE = "+255764519027"; 
         const CALLMEBOT_API_KEY = "999999"; 
 
         let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
+        // Enforce full screen immediately on window sizing and initialization
+        window.addEventListener('resize', runMainScreenEnforcement);
+
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
             document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
 
+            // Run structural check before running splash sequence
+            runMainScreenEnforcement();
+
             setTimeout(() => {
                 document.getElementById('splash-screen').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
+                // Only show dashboard if screen validation is clear
+                if (checkFullScreenEnforcement()) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                }
             }, 2000); 
         });
+
+        function checkFullScreenEnforcement() {
+            const isWidthValid = window.outerWidth >= (window.screen.width * 0.85);
+            const isHeightValid = window.outerHeight >= (window.screen.height * 0.80);
+            return (isWidthValid && isHeightValid);
+        }
+
+        function runMainScreenEnforcement() {
+            if (!checkFullScreenEnforcement()) {
+                document.getElementById('screen-size-blocker').classList.remove('hidden');
+                document.getElementById('main-dashboard').classList.add('hidden');
+                if (isExamActive) {
+                    handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+                }
+            } else {
+                document.getElementById('screen-size-blocker').classList.add('hidden');
+                // Restore main dashboard view state only if exam isn't actively running or locked out
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden') && !document.getElementById('splash-screen').classList.contains('hidden')) {
+                    // handled by splash timer
+                } else if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                }
+            }
+        }
 
         function sendWhatsappNotification(messageText) {
             const alertUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`;
             fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
-        }
-
-        // Updated scaling-tolerant structural check for full size layouts
-        function checkFullScreenEnforcement() {
-            // Checks if window matches more than 85% width of screen resolution (Split-screens take max 50%)
-            const isWidthValid = window.outerWidth >= (window.screen.width * 0.85);
-            const isHeightValid = window.outerHeight >= (window.screen.height * 0.80);
-            return (isWidthValid && isHeightValid);
         }
 
         function loadLocalExam(subjectKey) {
@@ -219,13 +254,14 @@
 
             let lockoutCount = parseInt(localStorage.getItem(`lockouts_${subjectKey}`) || "0");
             
+            // Hard gate check: 3 or more lockouts totally locks the student out
             if (lockoutCount >= 3 || localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
                 showStrictLockoutScreen("cheated");
                 return;
             }
 
             if (!checkFullScreenEnforcement()) {
-                alert("❌ ACCESS DENIED:\nYour browser window is not full size. Please maximize your browser window or press F11 to attempt this exam layout.");
+                runMainScreenEnforcement();
                 return;
             }
 
@@ -351,7 +387,7 @@
                 if (count > highestLock) highestLock = count;
             });
 
-            // Switches to "world" once 3 lockouts have registered
+            // Password Switch Enforcer: If they hit 3 or more total locks, password becomes "world"
             let requiredPassword = INSTRUCTOR_PASSWORD;
             if (highestLock >= 3) {
                 requiredPassword = SECRET_SUPER_PASSWORD; 
