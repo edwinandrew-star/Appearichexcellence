@@ -208,6 +208,14 @@
 
         window.addEventListener('resize', runMainScreenEnforcement);
 
+        // SLEEP & WAKEUP MONITOR INTERCEPTOR
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Instantly force calculation sync when browser wakes back up from machine sleep
+                executeGlobalClockTick();
+            }
+        });
+
         function checkGlobalPermanentLockStatus() {
             const subjects = ['math', 'science', 'english'];
             let maximumLockoutFound = false;
@@ -278,7 +286,6 @@
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
-                    // FIX: Remove ONLY the cheating penalty flags, keep the running deadline tracking intact!
                     const subjects = ['math', 'science', 'english'];
                     subjects.forEach(k => localStorage.removeItem(`status_${k}`));
                     
@@ -287,7 +294,6 @@
                     
                     if (checkFullScreenEnforcement()) {
                         if (isExamActive) {
-                            // Instantly put her straight back into the running exam window
                             document.getElementById('exam-workspace-screen').classList.remove('hidden');
                             document.getElementById('main-dashboard').classList.add('hidden');
                         } else {
@@ -353,7 +359,6 @@
             selectedSubjectTitle = exam.title; 
             isExamActive = true;
 
-            // Only generate a new timestamp deadline if one doesn't exist yet!
             if (!localStorage.getItem('exam_deadline_timestamp')) {
                 const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
                 localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
@@ -368,20 +373,11 @@
             let injectionBox = document.getElementById('questions-injection-box');
             injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
 
-            document.addEventListener('visibilitychange', handleCheatingDetection);
-            window.addEventListener('blur', handleCheatingDetection);
-        }
-
-        function handleCheatingDetection() { 
-            if (isExamActive && (document.hidden || !document.hasFocus())) {
-                handleViolationLockout(); 
-            }
+            // REMOVED duplicate visibility checks to prevent local variable collisions during hardware sleep cycles
         }
         
         function triggerManualFinish() {
             isExamActive = false;
-            document.removeEventListener('visibilitychange', handleCheatingDetection);
-            window.removeEventListener('blur', handleCheatingDetection);
             localStorage.setItem(`status_${currentSubjectKey}`, "locked");
             localStorage.removeItem('exam_deadline_timestamp');
             localStorage.removeItem('active_subject_key');
