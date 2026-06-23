@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appearich - Instructor Panel (File Upload)</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 40px; margin: 0; }
+        .admin-box { max-width: 600px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin: 0 auto; border-top: 6px solid #facc15; }
+        h1 { margin-top: 0; color: #111827; font-size: 1.8rem; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #374151; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e5e7eb; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        button { background: #111827; color: #facc15; border: none; padding: 14px 30px; font-weight: bold; font-size: 1rem; border-radius: 6px; cursor: pointer; width: 100%; }
+        button:hover { background: #000; }
+        .loading { color: #2563eb; font-weight: bold; display: none; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-box">
+        <h1>Appearich Management Portal</h1>
+        <p style="color: #6b7280; margin-bottom: 25px;">Upload your exam file (PDF or Image) directly to the student portal.</p>
+        
+        <div id="loading-message" class="loading">Uploading exam file to cloud storage... Please wait...</div>
+
+        <form id="exam-form" onsubmit="uploadExamFileToCloud(event)">
+            <label for="subject">Select Assessment Profile</label>
+            <select id="subject" required>
+                <option value="math">Mathematics</option>
+                <option value="science">Science</option>
+                <option value="english">English</option>
+            </select>
+
+            <label for="title">Display Title</label>
+            <input type="text" id="title" placeholder="e.g., Mathematics Mock Exam Paper" required>
+
+            <label for="duration">Timer Duration (In Seconds)</label>
+            <input type="number" id="duration" placeholder="e.g., 1800 for 30 minutes" required>
+
+            <label for="exam-file">Upload Question Paper File (PDF, PNG, JPG)</label>
+            <input type="file" id="exam-file" accept="application/pdf,image/*" required>
+
+            <button type="submit" id="submit-btn">Upload & Publish Live</button>
+        </form>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_2xH4d8oAxPjZd9_DT0QIi4T1-dtIc6U",
+            authDomain: "appearich.firebaseapp.com",
+            projectId: "appearich",
+            storageBucket: "appearich.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:123456:web:abcd1234"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        function uploadExamFileToCloud(e) {
+            e.preventDefault();
+            
+            const subjectKey = document.getElementById('subject').value;
+            const examTitle = document.getElementById('title').value;
+            const durationSecs = parseInt(document.getElementById('duration').value);
+            const fileInput = document.getElementById('exam-file');
+            
+            if (fileInput.files.length === 0) return;
+            const file = fileInput.files[0];
+
+            // Show loading indicators
+            document.getElementById('loading-message').style.display = 'block';
+            document.getElementById('submit-btn').disabled = true;
+
+            // 1. Upload the exam sheet file to Firebase Storage
+            const fileRef = storage.ref('exam_papers/' + subjectKey + '-' + Date.now() + '-' + file.name);
+            
+            fileRef.put(file)
+                .then(snapshot => snapshot.ref.getDownloadURL())
+                .then(downloadURL => {
+                    // 2. Link that file URL inside the Firestore entry
+                    return db.collection("exams").doc(subjectKey).set({
+                        title: examTitle,
+                        durationSeconds: durationSecs,
+                        fileUrl: downloadURL,
+                        isFileType: true // Flag to tell frontend this is an uploaded document
+                    });
+                })
+                .then(() => {
+                    alert("Success! The exam file has been uploaded securely and is live.");
+                    document.getElementById("exam-form").reset();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Upload error. Ensure your Firebase Storage Rules are set to allow read/write.");
+                })
+                .finally(() => {
+                    document.getElementById('loading-message').style.display = 'none';
+                    document.getElementById('submit-btn').disabled = false;
+                });
+        }
+    </script>
+</body>
+</html>
