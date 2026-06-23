@@ -152,7 +152,7 @@
          
         <div id="master-reset-container" style="margin-top: 30px;">
             <p id="unlock-link-wrapper"><a href="#" onclick="clearAllDeviceLocks()" style="color: #52525b; font-size: 0.85rem; text-decoration: underline; cursor: pointer;">🔧 Unlock Exam Layout (Requires Password)</a></p>
-            <button id="master-reset-btn" onclick="clearAllDeviceLocks()" class="action-btn hidden" style="background: var(--danger-red); color: white; border: 2px solid white;">🔧 Instructor Master Reset</button>
+            <button id="master-reset-btn" onclick="clearAllDeviceLocks()" class="action-btn hidden" style="background: var(--danger-red); color: white; border: 2px solid white; display: none;">🔧 Instructor Master Reset</button>
         </div>
     </div>
 
@@ -240,8 +240,12 @@
         }
 
         function sendWhatsappNotification(messageText) {
-            const alertUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`;
-            fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
+            try {
+                const alertUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`;
+                fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notification status caught safely"));
+            } catch (e) {
+                console.log("Skipped notification safely");
+            }
         }
 
         function loadLocalExam(subjectKey) {
@@ -362,8 +366,9 @@
                 document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.add('hidden');
                 
-                // Toggle display system elements for 3rd lockout state
+                // Toggle Master layout buttons for 3+ lockout state
                 document.getElementById('unlock-link-wrapper').classList.add('hidden');
+                document.getElementById('master-reset-btn').style.display = "inline-block";
                 document.getElementById('master-reset-btn').classList.remove('hidden');
             } else {
                 document.getElementById('lockout-headline').innerText = "EXAM CLOSED & LOCKED";
@@ -371,6 +376,7 @@
                 document.getElementById('photo-confirm-btn').classList.remove('hidden');
                 
                 document.getElementById('unlock-link-wrapper').classList.remove('hidden');
+                document.getElementById('master-reset-btn').style.display = "none";
                 document.getElementById('master-reset-btn').classList.add('hidden');
             }
         }
