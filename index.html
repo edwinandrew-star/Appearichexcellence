@@ -34,7 +34,7 @@
 
         .hidden { display: none !important; }
 
-        /* 1. SPLASH SCREEN DISPLAY */
+        /* SPLASH SCREEN DISPLAY */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -215,11 +215,11 @@
             db.collection("exams").doc(subjectKey).get()
                 .then(doc => {
                     if (!doc.exists) {
-                        alert("Exam configuration profile could not be located inside your Firestore 'exams' collection.");
+                        alert("Exam configuration profile could not be located inside your database collection.");
                         return;
                     }
                     const data = doc.data();
-                    startExamSequence(data.title, data.durationSeconds, data.questionContent);
+                    startExamSequence(data.title, data.durationSeconds, data);
                 })
                 .catch(err => {
                     console.error(err);
@@ -227,7 +227,7 @@
                 });
         }
 
-        function startExamSequence(title, duration, questions) {
+        function startExamSequence(title, duration, data) {
             timeLeft = duration;
             isExamActive = true;
 
@@ -236,7 +236,17 @@
             document.getElementById('exam-title-header').innerText = title;
 
             let injectionBox = document.getElementById('questions-injection-box');
-            injectionBox.innerHTML = `<div class="question-box"><p style="white-space: pre-wrap;">${questions}</p></div>`;
+            
+            // Handles File Display vs Raw Text Display smoothly
+            if (data.isFileType && data.fileUrl) {
+                if (data.fileUrl.includes('.pdf') || data.fileUrl.toLowerCase().includes('alt=media')) {
+                    injectionBox.innerHTML = `<iframe src="${data.fileUrl}" style="width:100%; height:600px; border:none; border-radius:4px;"></iframe>`;
+                } else {
+                    injectionBox.innerHTML = `<div style="text-align:center;"><img src="${data.fileUrl}" style="max-width:100%; height:auto; border-radius:4px;" /></div>`;
+                }
+            } else {
+                injectionBox.innerHTML = `<div class="question-box"><p style="white-space: pre-wrap;">${data.questionContent}</p></div>`;
+            }
 
             activeTimer = setInterval(() => {
                 if(timeLeft <= 0) { clearInterval(activeTimer); finishExamAndGoToUpload(); }
@@ -276,7 +286,6 @@
             document.removeEventListener('mouseleave', blankAndSubmitImmediately);
             window.removeEventListener('resize', verifyDisplayDimensions);
 
-            // Post emergency incident parameters straight to Firestore
             db.collection("submissions").add({
                 subject: currentSubjectKey,
                 status: "AUTO_SUBMIT_VIOLATION",
@@ -302,7 +311,6 @@
             document.getElementById('upload-workspace-screen').classList.remove('hidden');
         }
 
-        // CONNECTED TO FIRESTORE + CLOUD STORAGE: Streamlines files up seamlessly
         function finalSystemSubmit(e) {
             e.preventDefault();
             const fileInput = document.getElementById('student-files-input');
@@ -312,11 +320,9 @@
             const file = files[0];
             const storageRef = storage.ref('submissions/' + Date.now() + '-' + file.name);
 
-            // Upload actual image file to bucket room
             storageRef.put(file)
                 .then(snapshot => snapshot.ref.getDownloadURL())
                 .then(downloadURL => {
-                    // Save access track record log sheet inside database entry
                     return db.collection("submissions").add({
                         subject: currentSubjectKey,
                         status: "COMPLETED",
@@ -332,7 +338,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("Upload encountered a bucket storage fault. Check configuration permissions rules.");
+                    alert("Upload encountered a storage error. Ensure rules are configured cleanly.");
                 });
         }
     </script>
