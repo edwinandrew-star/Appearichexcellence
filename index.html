@@ -203,6 +203,20 @@
 
         window.addEventListener('resize', runMainScreenEnforcement);
 
+        // GLOBAL HARD CORE RE-VERIFICATION CHECK
+        function checkGlobalPermanentLockStatus() {
+            const subjects = ['math', 'science', 'english'];
+            let maximumLockoutFound = false;
+            
+            subjects.forEach(k => {
+                let count = parseInt(localStorage.getItem(`lockouts_${k}`) || "0");
+                if (count >= 3 || localStorage.getItem(`status_${k}`) === 'cheated') {
+                    maximumLockoutFound = true;
+                }
+            });
+            return maximumLockoutFound;
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
             document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
@@ -211,7 +225,11 @@
 
             setTimeout(() => {
                 document.getElementById('splash-screen').classList.add('hidden');
-                if (checkFullScreenEnforcement()) {
+                
+                // If they are strictly blocked globally, hijack the screen instantly
+                if (checkGlobalPermanentLockStatus()) {
+                    showStrictLockoutScreen("cheated");
+                } else if (checkFullScreenEnforcement()) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 }
             }, 2000); 
@@ -224,6 +242,11 @@
         }
 
         function runMainScreenEnforcement() {
+            if (checkGlobalPermanentLockStatus()) {
+                showStrictLockoutScreen("cheated");
+                return;
+            }
+
             if (!checkFullScreenEnforcement()) {
                 document.getElementById('screen-size-blocker').classList.remove('hidden');
                 document.getElementById('main-dashboard').classList.add('hidden');
@@ -232,8 +255,7 @@
                 }
             } else {
                 document.getElementById('screen-size-blocker').classList.add('hidden');
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden') && !document.getElementById('splash-screen').classList.contains('hidden')) {
-                } else if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 }
             }
@@ -242,24 +264,20 @@
         function sendWhatsappNotification(messageText) {
             try {
                 const alertUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`;
-                fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notification caught safely"));
-            } catch (e) {
-                console.log("Skipped notification safely");
-            }
+                fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notification caught"));
+            } catch (e) {}
         }
 
         function loadLocalExam(subjectKey) {
-            const exam = localExamsData[subjectKey];
-            if (!exam) return;
-
             currentSubjectKey = subjectKey;
 
-            let lockoutCount = parseInt(localStorage.getItem(`lockouts_${subjectKey}`) || "0");
-            
-            if (lockoutCount >= 3 || localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
+            if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen("cheated");
                 return;
             }
+
+            const exam = localExamsData[subjectKey];
+            if (!exam) return;
 
             if (!checkFullScreenEnforcement()) {
                 runMainScreenEnforcement();
@@ -271,11 +289,6 @@
                 localStorage.removeItem(`status_${subjectKey}`);
                 localStorage.removeItem(`lockouts_${subjectKey}`);
                 localStorage.setItem(`title_${subjectKey}`, exam.title);
-            }
-
-            if(localStorage.getItem(`status_${subjectKey}`) === 'locked') {
-                showStrictLockoutScreen(localStorage.getItem(`status_${subjectKey}`));
-                return;
             }
             
             selectedSubjectTitle = exam.title; 
@@ -333,46 +346,36 @@
             lockouts++;
             localStorage.setItem(`lockouts_${currentSubjectKey}`, lockouts);
 
-            // Hide the actual workspace layout container instantly
             document.getElementById('exam-workspace-screen').classList.add('hidden');
 
             if (reasonCode === "SECURITY_BREACH_VIOLATION") {
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Lockout Count: ${lockouts}/3.`);
-                
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left exam for "${selectedSubjectTitle}"! Locks: ${lockouts}/3.`);
                 if (lockouts >= 3) {
                     localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-                    showStrictLockoutScreen("cheated");
                 } else {
                     localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                    showStrictLockoutScreen("locked");
                 }
             } else {
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Lockout Count: ${lockouts}/3.`);
-                
-                if (lockouts >= 3) {
-                    showStrictLockoutScreen("cheated");
-                } else {
-                    showStrictLockoutScreen("locked");
-                }
+                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Locks: ${lockouts}/3.`);
             }
+
+            showStrictLockoutScreen();
         }
 
-        function showStrictLockoutScreen(type) {
+        function showStrictLockoutScreen(forcedType) {
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
 
-            let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0");
-
-            if (lockouts >= 3 || type === "cheated") {
+            if (checkGlobalPermanentLockStatus() || forcedType === "cheated") {
                 document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
                 document.getElementById('lockout-paragraph').innerHTML = "This exam has been permanently terminated because the browser environment exceeded maximum system lock limits.<br><strong>Maximum attempts reached. Standard teacher reset codes are voided.</strong>";
                 document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.add('hidden');
                 
-                // Switch interface to display only the red Instructor Master button configuration
+                // System layout hard freeze rules
                 document.getElementById('unlock-link-wrapper').style.display = "none";
                 document.getElementById('master-reset-btn').style.display = "inline-block";
             } else {
@@ -394,15 +397,8 @@
         function clearAllDeviceLocks() {
             const userInput = prompt("Enter Instructor Authorization Password to Unlock Layout:");
             
-            let highestLock = 0;
-            const subjects = ['math', 'science', 'english'];
-            subjects.forEach(k => {
-                let count = parseInt(localStorage.getItem(`lockouts_${k}`) || "0");
-                if (count > highestLock) highestLock = count;
-            });
-
             let requiredPassword = INSTRUCTOR_PASSWORD;
-            if (highestLock >= 3) {
+            if (checkGlobalPermanentLockStatus()) {
                 requiredPassword = SECRET_SUPER_PASSWORD; 
             }
 
