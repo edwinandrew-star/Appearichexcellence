@@ -208,24 +208,24 @@
 
         window.addEventListener('resize', runMainScreenEnforcement);
 
-        // SLEEP & WAKEUP MONITOR INTERCEPTOR
+        // STABLE TAB FOCUS AND SYSTEM WAKE ACTIONS
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                // Instantly force calculation sync when browser wakes back up from machine sleep
-                executeGlobalClockTick();
+                calculateTimeRemaining();
+                syncWithRemoteGistServer();
+            } else {
+                if (isExamActive) handleViolationLockout();
             }
         });
 
+        window.addEventListener('blur', () => {
+            if (isExamActive) handleViolationLockout();
+        });
+
         function checkGlobalPermanentLockStatus() {
-            const subjects = ['math', 'science', 'english'];
-            let maximumLockoutFound = false;
-            subjects.forEach(k => {
-                let status = localStorage.getItem(`status_${k}`);
-                if (status === 'cheated' || status === 'locked') {
-                    maximumLockoutFound = true;
-                }
-            });
-            return maximumLockoutFound;
+            if (!currentSubjectKey) return false;
+            let status = localStorage.getItem(`status_${currentSubjectKey}`);
+            return (status === 'cheated' || status === 'locked');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -235,7 +235,7 @@
             currentSubjectKey = localStorage.getItem('active_subject_key') || "";
             if (currentSubjectKey) {
                 selectedSubjectTitle = localExamsData[currentSubjectKey].title;
-                if (localStorage.getItem('exam_deadline_timestamp')) {
+                if (localStorage.getItem('exam_deadline_timestamp') && !localStorage.getItem(`status_${currentSubjectKey}`)) {
                     isExamActive = true;
                 }
             }
@@ -251,8 +251,11 @@
         });
 
         function executeGlobalClockTick() {
+            calculateTimeRemaining();
             syncWithRemoteGistServer();
+        }
 
+        function calculateTimeRemaining() {
             const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
             if (!deadlineStr || !currentSubjectKey) return;
 
@@ -282,10 +285,13 @@
         async function syncWithRemoteGistServer() {
             try {
                 const forcingCounter = Date.now();
-                const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`);
+                const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`).catch(() => null);
+                if (!response) return; 
+                
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
+                    // REMOVE LOCAL LOCK FLAGS
                     const subjects = ['math', 'science', 'english'];
                     subjects.forEach(k => localStorage.removeItem(`status_${k}`));
                     
@@ -293,11 +299,16 @@
                     document.getElementById('restored-screen').classList.add('hidden');
                     
                     if (checkFullScreenEnforcement()) {
-                        if (isExamActive) {
+                        const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
+                        if (hasDeadline) {
+                            // FIX: Re-authenticate engine variables safely before showing view container
+                            isExamActive = true; 
                             document.getElementById('exam-workspace-screen').classList.remove('hidden');
                             document.getElementById('main-dashboard').classList.add('hidden');
                         } else {
+                            isExamActive = false;
                             document.getElementById('main-dashboard').classList.remove('hidden');
+                            document.getElementById('exam-workspace-screen').classList.add('hidden');
                         }
                     }
                     return;
@@ -357,13 +368,13 @@
             if (!exam) return;
 
             selectedSubjectTitle = exam.title; 
-            isExamActive = true;
-
+            
             if (!localStorage.getItem('exam_deadline_timestamp')) {
                 const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
                 localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
             }
             localStorage.setItem('active_subject_key', subjectKey);
+            isExamActive = true;
 
             sendWhatsappNotification(`📢 ALERT: Student started "${selectedSubjectTitle}".`);
             document.getElementById('main-dashboard').classList.add('hidden');
@@ -372,8 +383,6 @@
 
             let injectionBox = document.getElementById('questions-injection-box');
             injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
-
-            // REMOVED duplicate visibility checks to prevent local variable collisions during hardware sleep cycles
         }
         
         function triggerManualFinish() {
@@ -388,6 +397,7 @@
 
         function handleViolationLockout() {
             if (!isExamActive) return;
+            isExamActive = false; // FIX: Instantly drop activation standard so loop calculations don't fire continuously
             localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
             sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or screenshot attempted for "${selectedSubjectTitle}"! Screen locked.`);
             showStrictLockoutScreen();
