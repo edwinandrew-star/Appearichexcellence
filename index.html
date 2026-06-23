@@ -15,12 +15,26 @@
             --card-gray: #f9fafb;
         }
 
+        /* ANTI-COPY & ANTI-SELECTION PROTOCOLS */
+        * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-user-drag: none !important;
+        }
+
+        /* ANTI-SCREENSHOT PRINT STYLE SHEET */
+        /* If she tries to hit Ctrl+P or save to PDF, this blanks out the whole page */
+        @media print {
+            body { display: none !important; }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--pure-white);
             color: var(--dark-charcoal);
             margin: 0; padding: 0; min-height: 100vh;
-            user-select: none; -webkit-user-select: none;
         }
 
         .hidden { display: none !important; }
@@ -154,7 +168,6 @@
     </div>
 
     <script>
-        // Dedicated Remote API Link pointing to your explicit revision
         const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/70f7b83e3f2d6c4c13361988bfe7632a7787e33d/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
@@ -169,18 +182,34 @@
 
         let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
-        // SECURITY LAYER 1: STRICT INPUT & CONTEXT BLOCKING
-        document.addEventListener('contextmenu', event => event.preventDefault()); // Blocks Right-Click Menu
+        // SECURITY LAYER 1: HARD BLOCK SELECTION, CONTEXT MENU, AND SHORTCUT KEYS
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
+        document.addEventListener('selectstart', event => event.preventDefault()); // Blocks mouse dragging text selection
         
         document.addEventListener('keydown', (e) => {
-            // Blocks F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (View Source), and Alt+Tab
+            // F12, Ctrl+Shift+I/J/C, Ctrl+U, Alt+Tab, and Ctrl+S (Save Page)
             if (e.keyCode === 123 || 
-                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
                 (e.ctrlKey && e.keyCode === 85) ||
+                (e.ctrlKey && e.keyCode === 83) ||
                 (e.altKey && e.keyCode === 9)) { 
                 e.preventDefault();
                 if (isExamActive) handleTimeoutClose("SECURITY_BREACH_VIOLATION");
                 return false;
+            }
+
+            // ANTI-SCREENSHOT LAYER 1: Catch "Print Screen" key press directly
+            if (e.key === "PrintScreen" || e.keyCode === 44) {
+                e.preventDefault();
+                navigator.clipboard.writeText("Screenshot Blocked."); // Clears clipboard instantly
+                if (isExamActive) handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+            }
+        });
+
+        // ANTI-SCREENSHOT LAYER 2: Clears clipboard continually if window loses attention
+        window.addEventListener('keyup', (e) => {
+            if (e.key === "PrintScreen" || e.keyCode === 44) {
+                navigator.clipboard.writeText("Screenshot Blocked.");
             }
         });
 
@@ -190,8 +219,8 @@
             const subjects = ['math', 'science', 'english'];
             let maximumLockoutFound = false;
             subjects.forEach(k => {
-                let count = parseInt(localStorage.getItem(`lockouts_${k}`) || "0");
-                if (count >= 3 || localStorage.getItem(`status_${k}`) === 'cheated') {
+                let status = localStorage.getItem(`status_${k}`);
+                if (status === 'cheated' || status === 'locked') {
                     maximumLockoutFound = true;
                 }
             });
@@ -209,12 +238,11 @@
                 syncWithRemoteGistServer();
             }, 2000); 
 
-            setInterval(syncWithRemoteGistServer, 5000);
+            setInterval(syncWithRemoteGistServer, 4000);
         });
 
         async function syncWithRemoteGistServer() {
             try {
-                // SECURITY LAYER 2: TIME-STAMPED CACHE BREAKING FOR INSTANT RESPONSIVENESS
                 const forcingCounter = Date.now();
                 const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`);
                 const data = await response.json();
@@ -229,7 +257,7 @@
                     return;
                 }
             } catch (e) {
-                console.log("Sync tracking tracking sync cycle...");
+                console.log("Awaiting connection...");
             }
 
             if (checkGlobalPermanentLockStatus()) {
@@ -242,7 +270,6 @@
         }
 
         function checkFullScreenEnforcement() {
-            // Checks if window fills almost the whole monitor display dimension space
             return (window.outerWidth >= (window.screen.width * 0.95) && window.outerHeight >= (window.screen.height * 0.90));
         }
 
@@ -273,7 +300,6 @@
             currentSubjectKey = subjectKey;
             if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen("cheated"); return; }
             
-            // SECURITY LAYER 3: PRE-EXAM BLOCK (Catches split-screens before exam initializes)
             if (!checkFullScreenEnforcement()) { 
                 runMainScreenEnforcement(); 
                 return; 
@@ -308,13 +334,11 @@
                 }
             }, 1000);
 
-            // SECURITY LAYER 4: AGGRESSIVE RE-FOCUS TRACKING
             document.addEventListener('visibilitychange', handleCheatingDetection);
             window.addEventListener('blur', handleCheatingDetection);
         }
 
         function handleCheatingDetection() { 
-            // Lock out instantly if layout goes hidden OR window loses window system environment focus
             if (isExamActive && (document.hidden || !document.hasFocus())) {
                 handleTimeoutClose("SECURITY_BREACH_VIOLATION"); 
             }
@@ -329,18 +353,16 @@
             document.removeEventListener('visibilitychange', handleCheatingDetection);
             window.removeEventListener('blur', handleCheatingDetection);
 
-            let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0") + 1;
-            localStorage.setItem(`lockouts_${currentSubjectKey}`, lockouts);
             document.getElementById('exam-workspace-screen').classList.add('hidden');
 
             if (reasonCode === "SECURITY_BREACH_VIOLATION") {
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab for "${selectedSubjectTitle}"! Locks: ${lockouts}/3.`);
-                localStorage.setItem(`status_${currentSubjectKey}`, lockouts >= 3 ? "cheated" : "locked");
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or tried screenshotting "${selectedSubjectTitle}"! Layout locked.`);
+                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
             } else {
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Closed layout window "${selectedSubjectTitle}". Locks: ${lockouts}/3.`);
+                sendWhatsappNotification(`⚠️ ALERT: Closed layout window "${selectedSubjectTitle}".`);
             }
-            showStrictLockoutScreen();
+            showStrictLockoutScreen("cheated");
         }
 
         function showStrictLockoutScreen(forcedType) {
@@ -348,17 +370,11 @@
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
 
-            if (checkGlobalPermanentLockStatus() || forcedType === "cheated") {
-                document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
-                document.getElementById('lockout-headline').style.color = "var(--danger-red)";
-                document.getElementById('lockout-paragraph').innerHTML = "This exam layout has been locked out because environmental controls exceeded limits.<br><strong>Maximum attempts reached. Please contact your instructor.</strong>";
-                document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
-                document.getElementById('photo-confirm-btn').classList.add('hidden');
-            } else {
-                document.getElementById('lockout-headline').innerText = "EXAM CLOSED & LOCKED";
-                document.getElementById('lockout-headline').style.color = "var(--danger-red)";
-                document.getElementById('photo-confirm-btn').classList.remove('hidden');
-            }
+            document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
+            document.getElementById('lockout-headline').style.color = "var(--danger-red)";
+            document.getElementById('lockout-paragraph').innerHTML = "This exam layout has been locked out because environmental controls exceeded limits.<br><strong>System locked out. Please contact your instructor.</strong>";
+            document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
+            document.getElementById('photo-confirm-btn').classList.add('hidden');
         }
 
         function confirmPhotosSent() {
