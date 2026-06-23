@@ -169,6 +169,21 @@
 
         let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
+        // SECURITY LAYER 1: STRICT INPUT & CONTEXT BLOCKING
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Blocks Right-Click Menu
+        
+        document.addEventListener('keydown', (e) => {
+            // Blocks F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (View Source), and Alt+Tab
+            if (e.keyCode === 123 || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+                (e.ctrlKey && e.keyCode === 85) ||
+                (e.altKey && e.keyCode === 9)) { 
+                e.preventDefault();
+                if (isExamActive) handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+                return false;
+            }
+        });
+
         window.addEventListener('resize', runMainScreenEnforcement);
 
         function checkGlobalPermanentLockStatus() {
@@ -194,15 +209,14 @@
                 syncWithRemoteGistServer();
             }, 2000); 
 
-            // Keep tracking your remote control payload adjustments seamlessly every 5 seconds
             setInterval(syncWithRemoteGistServer, 5000);
         });
 
         async function syncWithRemoteGistServer() {
             try {
-                // Generates an aggressive unique stamp to bypass local cache memories instantly
-                const cacheBuster = Math.random().toString(36).substring(2);
-                const response = await fetch(`${REMOTE_JSON_URL}?nocache=${cacheBuster}`);
+                // SECURITY LAYER 2: TIME-STAMPED CACHE BREAKING FOR INSTANT RESPONSIVENESS
+                const forcingCounter = Date.now();
+                const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`);
                 const data = await response.json();
                 
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
@@ -215,7 +229,7 @@
                     return;
                 }
             } catch (e) {
-                console.log("Awaiting link state sync updates...");
+                console.log("Sync tracking tracking sync cycle...");
             }
 
             if (checkGlobalPermanentLockStatus()) {
@@ -228,7 +242,8 @@
         }
 
         function checkFullScreenEnforcement() {
-            return (window.outerWidth >= (window.screen.width * 0.85) && window.outerHeight >= (window.screen.height * 0.80));
+            // Checks if window fills almost the whole monitor display dimension space
+            return (window.outerWidth >= (window.screen.width * 0.95) && window.outerHeight >= (window.screen.height * 0.90));
         }
 
         function runMainScreenEnforcement() {
@@ -257,8 +272,15 @@
         function loadLocalExam(subjectKey) {
             currentSubjectKey = subjectKey;
             if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen("cheated"); return; }
+            
+            // SECURITY LAYER 3: PRE-EXAM BLOCK (Catches split-screens before exam initializes)
+            if (!checkFullScreenEnforcement()) { 
+                runMainScreenEnforcement(); 
+                return; 
+            }
+
             const exam = localExamsData[subjectKey];
-            if (!exam || !checkFullScreenEnforcement()) { runMainScreenEnforcement(); return; }
+            if (!exam) return;
 
             selectedSubjectTitle = exam.title; 
             timeLeft = exam.durationSeconds; 
@@ -286,11 +308,14 @@
                 }
             }, 1000);
 
+            // SECURITY LAYER 4: AGGRESSIVE RE-FOCUS TRACKING
             document.addEventListener('visibilitychange', handleCheatingDetection);
+            window.addEventListener('blur', handleCheatingDetection);
         }
 
         function handleCheatingDetection() { 
-            if (isExamActive && document.hidden) {
+            // Lock out instantly if layout goes hidden OR window loses window system environment focus
+            if (isExamActive && (document.hidden || !document.hasFocus())) {
                 handleTimeoutClose("SECURITY_BREACH_VIOLATION"); 
             }
         }
@@ -302,6 +327,7 @@
             isExamActive = false; 
             clearInterval(activeTimer);
             document.removeEventListener('visibilitychange', handleCheatingDetection);
+            window.removeEventListener('blur', handleCheatingDetection);
 
             let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0") + 1;
             localStorage.setItem(`lockouts_${currentSubjectKey}`, lockouts);
