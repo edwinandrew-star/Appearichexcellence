@@ -68,6 +68,7 @@
 </head>
 <body>
 
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div>
             <div class="logo-main-text">Appearich</div>
@@ -75,17 +76,19 @@
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD HUB -->
     <div id="main-dashboard" class="app-container hidden">
         <div class="hero-banner-full">
             <h1>Appearich</h1>
-            <p>"Saw a seed of preparation today for ur next chapter"</p>
+            <p>"Saw a seed of preparation today for your next chapter"</p>
         </div>
 
+        <!-- LIVE GRADE GRADEBOOK VIEW -->
         <h2 class="section-title">Your Published Grades</h2>
         <div style="margin-bottom: 40px;">
             <div class="score-board">
                 <div class="score-row" style="font-weight: bold; color: var(--primary-yellow);"><span>Subject Name</span> <span>Achieved Grade</span></div>
-                <div class="score-row" style="color: #cbd5e1;"><span>Mathematics Core Paper</span> <span id="grade-math-box">PENDING (Click Attempt below to check status)</span></div>
+                <div class="score-row" style="color: #cbd5e1;"><span>Mathematics Core Paper</span> <span id="grade-math-box">PENDING</span></div>
                 <div class="score-row" style="color: #cbd5e1;"><span>Science Core Paper</span> <span id="grade-science-box">NOT ATTEMPTED</span></div>
             </div>
         </div>
@@ -110,6 +113,7 @@
         </div>
     </div>
 
+    <!-- WORKSPACE PANEL -->
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
             <span class="timer">Time Left: <span id="time-display">00:00</span></span>
@@ -120,13 +124,14 @@
         </div>
     </div>
 
+    <!-- TIMEOUT & LOCKOUT SCREEN -->
     <div id="lockout-screen" class="warning-screen hidden">
-        <h1 style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">EXAM CLOSED & LOCKED</h1>
-        <p style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
+        <h1 id="lockout-headline" style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">EXAM CLOSED & LOCKED</h1>
+        <p id="lockout-paragraph" style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
             Time has expired or an unauthorized window tab shift occurred.<br>
             <strong>Your access to the exam paper has been terminated.</strong>
         </p>
-        <div style="background:#111827; padding:20px; border-radius:8px; border:2px dashed var(--primary-yellow); margin-top:20px; max-width:500px;">
+        <div id="instruction-box" style="background:#111827; padding:20px; border-radius:8px; border:2px dashed var(--primary-yellow); margin-top:20px; max-width:500px;">
             <p style="margin:0; font-weight:bold; color:white;">👉 INSTRUCTIONS FOR CANDIDATE:</p>
             <ol style="text-align:left; color:#94a3b8; margin:10px 0 0 0; padding-left:20px;">
                 <li>Take another phone right now.</li>
@@ -134,9 +139,10 @@
                 <li>Send all photos to your teacher's phone directly.</li>
             </ol>
         </div>
-        <button onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
+        <button id="photo-confirm-btn" onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
     </div>
 
+    <!-- ACCESSIBILITY RESTORED / PENDING MARKING SCREEN -->
     <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
         <span style="font-size: 4rem;">⏳</span>
         <h1 style="color:var(--primary-yellow); font-size:2.8rem; margin:10px 0;">WAIT FOR THE SCORE</h1>
@@ -148,29 +154,47 @@
     </div>
 
     <script>
-        // ==========================================
-        // INSTRUCTOR GRADEBOOK CONFIGURATION
-        // EDIT THIS STATUS STRING WHEN YOU FINISH MARKING:
-        // ==========================================
+        // ======================================================================
+        // 1. INSTRUCTOR GRADEBOOK CONFIGURATION
+        // EDIT THIS TEXT VALUE WHEN YOU FINISH MARKING HER WORK:
+        // ======================================================================
         const PUBLISHED_GRADES = {
-            math: "WAIT FOR THE SCORE", // <-- Change this text to her grade later! (e.g. "85/100" or "Grade A")
+            math: "WAIT FOR THE SCORE", // <-- Change this when grading is complete! (e.g. "82/100")
             science: "NOT ATTEMPTED",
             english: "NOT ATTEMPTED"
         };
 
-        const WHATSAPP_PHONE = "+255764519027"; 
-        const CALLMEBOT_API_KEY = "999999";    
-
+        // ======================================================================
+        // 2. EXAM STORAGE LINKS
+        // MAPS YOUR UPLOADED GITHUB FILENAMES TO THE CORRESPONDING BUTTONS:
+        // ======================================================================
         const localExamsData = {
-            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 1800, isPdf: true, fileLink: "math-paper.pdf" },
-            science: { title: "Science Core Practice Exam Paper", durationSeconds: 1800, isPdf: false, fileLink: "science-sheet.png" },
-            english: { title: "English Core Practice Exam Paper", durationSeconds: 1800, isPdf: true, fileLink: "english-paper.pdf" }
+            math: { 
+                title: "Mathematics Core Mock Exam Paper", 
+                durationSeconds: 1800, 
+                isPdf: true, 
+                fileLink: "math-paper 1.pdf" // <-- The exact name of your uploaded math file on GitHub!
+            },
+            science: { 
+                title: "Science Core Practice Exam Paper", 
+                durationSeconds: 1800, 
+                isPdf: false, 
+                fileLink: "science-sheet.png" // <-- The exact name of your uploaded science file on GitHub!
+            },
+            english: { 
+                title: "English Core Practice Exam Paper", 
+                durationSeconds: 1800, 
+                isPdf: true, 
+                fileLink: "english-paper.pdf" // <-- The exact name of your uploaded english file on GitHub!
+            }
         };
 
-        let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "";
+        const WHATSAPP_PHONE = "+255764519027"; 
+        const CALLMEBOT_API_KEY = "999999"; // Replace with your CallMeBot API key
+
+        let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Render the grades from your layout settings
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
             document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
 
@@ -186,15 +210,16 @@
         }
 
         function loadLocalExam(subjectKey) {
-            // Block re-entry if exam was already locked or finished
-            if(localStorage.getItem(`status_${subjectKey}`) === 'locked') {
-                alert("Access Denied: This exam setup is closed and locked permanently.");
+            // Check if student has been locked out permanently from this exam
+            if(localStorage.getItem(`status_${subjectKey}`) === 'cheated' || localStorage.getItem(`status_${subjectKey}`) === 'locked') {
+                showStrictLockoutScreen(localStorage.getItem(`status_${subjectKey}`));
                 return;
             }
 
             const exam = localExamsData[subjectKey];
             if (!exam) return;
             
+            currentSubjectKey = subjectKey;
             selectedSubjectTitle = exam.title; 
             timeLeft = exam.durationSeconds; 
             isExamActive = true;
@@ -221,6 +246,7 @@
                 }
             }, 1000);
 
+            // TRACK CHEATING ATTEMPTS IMMEDIATELY
             document.addEventListener('visibilitychange', handleCheatingDetection);
             window.addEventListener('blur', handleCheatingDetection);
         }
@@ -235,18 +261,41 @@
 
         function handleTimeoutClose(reasonCode) {
             if (!isExamActive) return;
-            isExamActive = false; clearInterval(activeTimer);
+            isExamActive = false; 
+            clearInterval(activeTimer);
             
             document.removeEventListener('visibilitychange', handleCheatingDetection);
             window.removeEventListener('blur', handleCheatingDetection);
 
-            // Save permanent block state locally
-            localStorage.setItem("status_math", "locked");
+            // Destroy content window view immediately
+            document.getElementById('questions-injection-box').innerHTML = "";
 
-            sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Student is taking photos.`);
+            if (reasonCode === "SECURITY_BREACH_VIOLATION") {
+                // Permanently flag them in the device browser storage
+                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Student minimized or left the exam page for "${selectedSubjectTitle}"! The exam was forced closed immediately.`);
+                showStrictLockoutScreen("cheated");
+            } else {
+                localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed normally. Reason: [${reasonCode}]. Student is taking photos.`);
+                
+                document.getElementById('exam-workspace-screen').classList.add('hidden');
+                document.getElementById('lockout-screen').classList.remove('hidden');
+            }
+        }
 
+        function showStrictLockoutScreen(type) {
+            document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
+
+            if (type === "cheated") {
+                document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
+                document.getElementById('lockout-headline').style.color = "var(--danger-red)";
+                document.getElementById('lockout-paragraph').innerHTML = "This exam has been flagged and shut down due to a security focus breach (cheating attempt).<br><strong>You can no longer open or view this test file.</strong>";
+                document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
+                document.getElementById('photo-confirm-btn').classList.add('hidden');
+            }
         }
 
         function confirmPhotosSent() {
