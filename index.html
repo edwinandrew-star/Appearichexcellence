@@ -95,28 +95,24 @@
             <div class="paper-card">
                 <h3>Mathematics</h3>
                 <p>Open the Mathematics secure digital test view layout window.</p>
-                <button onclick="loadLocalExam('math')">Attempt Paper</button>
+                <button onclick="handleInitialVerificationClick('math_live')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>Science</h3>
                 <p>Open the Science secure digital test view layout window.</p>
-                <button onclick="loadLocalExam('science')">Attempt Paper</button>
+                <button onclick="handleInitialVerificationClick('science_live')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>English</h3>
                 <p>Open the English secure digital test view layout window.</p>
-                <button onclick="loadLocalExam('english')">Attempt Paper</button>
+                <button onclick="handleInitialVerificationClick('english_live')">Attempt Paper</button>
             </div>
-        </div>
-
-        <div style="margin-top: 60px; text-align: center;">
-            <a href="#" onclick="clearAllDeviceLocks()" style="color: #334155; font-size: 0.85rem; text-decoration: none; border: 1px dashed #1e293b; padding: 6px 12px; border-radius: 4px;">🔧 Instructor Reset System</a>
         </div>
     </div>
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">50:00</span></span>
+            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
@@ -139,8 +135,6 @@
             </ol>
         </div>
         <button id="photo-confirm-btn" onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
-        
-        <p style="margin-top: 40px;"><a href="#" onclick="clearAllDeviceLocks()" style="color: #27272a; font-size: 0.8rem; text-decoration: none;">🔧 Unlock Exam Layout (Requires Password)</a></p>
     </div>
 
     <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
@@ -160,38 +154,32 @@
             english: "NOT ATTEMPTED"
         };
 
-        // ======================================================================
-        // EXAM STORAGE CONFIGURATION
-        // ======================================================================
+        // EXAM REPOSITORY - DURATION TIMERS CONFIGURED TO 4500 SECONDS (1 HR 15 MINS)
         const localExamsData = {
-            math: { 
+            math_live: { 
                 title: "Mathematics Core Mock Exam Paper v1", 
-                durationSeconds: 3000, // 50 Minutes
+                durationSeconds: 4500, 
                 isPdf: true, 
-                fileLink: "math-paper1s.pdf" 
+                fileLink: "math-paper1a.pdf" 
             },
-            science: { 
+            science_live: { 
                 title: "Science Core Practice Exam Paper v1", 
-                durationSeconds: 3000, 
+                durationSeconds: 4500, 
                 isPdf: false, 
                 fileLink: "science-sheet.png" 
             },
-            english: { 
+            english_live: { 
                 title: "English Core Practice Exam Paper v1", 
-                durationSeconds: 3000, 
+                durationSeconds: 4500, 
                 isPdf: true, 
                 fileLink: "english-paper.pdf" 
             }
         };
 
-        // ======================================================================
-        // SECURITY GATEWAY & ALERTS CONFIGURATION
-        // ======================================================================
-        const INSTRUCTOR_PASSWORD = "ADMIN1"; // <-- Change your secret password here!
-        const WHATSAPP_PHONE = "+255764519027"; 
-        const CALLMEBOT_API_KEY = "999999"; 
+        const DIRECT_TEACHER_PHONE = "255764519027"; 
 
         let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
+        let pendingSubjectSetupKey = null; 
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
@@ -203,34 +191,44 @@
             }, 2000); 
         });
 
-        function sendWhatsappNotification(messageText) {
-            const alertUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`;
-            fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
-        }
-
-        function loadLocalExam(subjectKey) {
+        function handleInitialVerificationClick(subjectKey) {
             const exam = localExamsData[subjectKey];
             if (!exam) return;
 
-            // Auto-reset if title changes in configuration block
             const savedTitle = localStorage.getItem(`title_${subjectKey}`);
             if (savedTitle !== exam.title) {
                 localStorage.removeItem(`status_${subjectKey}`);
                 localStorage.setItem(`title_${subjectKey}`, exam.title);
             }
 
-            // Lockout checking
             if(localStorage.getItem(`status_${subjectKey}`) === 'cheated' || localStorage.getItem(`status_${subjectKey}`) === 'locked') {
                 showStrictLockoutScreen(localStorage.getItem(`status_${subjectKey}`));
                 return;
             }
+
+            pendingSubjectSetupKey = subjectKey; 
+
+            // TEXT CHANGED TO PRECISELY: "Starting right now."
+            const secureMessageText = "Starting right now.";
+            const mobileWhatsappGatewayUrl = `https://wa.me/${DIRECT_TEACHER_PHONE}?text=${encodeURIComponent(secureMessageText)}`;
             
+            window.open(mobileWhatsappGatewayUrl, '_blank');
+            window.addEventListener('focus', processWorkspaceInjectionOnReturn);
+        }
+
+        function processWorkspaceInjectionOnReturn() {
+            window.removeEventListener('focus', processWorkspaceInjectionOnReturn);
+            
+            if (!pendingSubjectSetupKey) return;
+            
+            const subjectKey = pendingSubjectSetupKey;
+            pendingSubjectSetupKey = null; 
+            
+            const exam = localExamsData[subjectKey];
             currentSubjectKey = subjectKey;
             selectedSubjectTitle = exam.title; 
             timeLeft = exam.durationSeconds; 
             isExamActive = true;
-
-            sendWhatsappNotification(`📢 ALERT: Student has STARTED attempting: "${selectedSubjectTitle}".`);
 
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.remove('hidden');
@@ -255,8 +253,10 @@
                 }
             }, 1000);
 
-            document.addEventListener('visibilitychange', handleCheatingDetection);
-            window.addEventListener('blur', handleCheatingDetection);
+            setTimeout(() => {
+                document.addEventListener('visibilitychange', handleCheatingDetection);
+                window.addEventListener('blur', handleCheatingDetection);
+            }, 1000);
         }
 
         function handleCheatingDetection() {
@@ -279,17 +279,17 @@
 
             if (reasonCode === "SECURITY_BREACH_VIOLATION") {
                 localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Access blocked permanently.`);
+                const hackNotification = `🚨 SECURITY ALERT: I left or minimized my active exam screen for "${selectedSubjectTitle}". Access blocked permanently.`;
+                window.open(`https://wa.me/${DIRECT_TEACHER_PHONE}?text=${encodeURIComponent(hackNotification)}`, '_blank');
                 showStrictLockoutScreen("cheated");
             } else {
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed normally. Reason: [${reasonCode}]. Student is taking photos.`);
-                
                 document.getElementById('exam-workspace-screen').classList.add('hidden');
                 document.getElementById('lockout-screen').classList.remove('hidden');
             }
         }
 
+        // LOCKOUT VIEW LOGIC
         function showStrictLockoutScreen(type) {
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
@@ -307,20 +307,9 @@
         function confirmPhotosSent() {
             document.getElementById('lockout-screen').classList.add('hidden');
             document.getElementById('restored-screen').classList.remove('hidden');
-            sendWhatsappNotification(`✅ UPDATE: Student confirmed sending calculation photos.`);
-        }
-
-        // PASSWORD VERIFICATION SECURE RESET FUNCTION
-        function clearAllDeviceLocks() {
-            const userInput = prompt("Enter Instructor Authorization Password to Unlock Layout:");
             
-            if (userInput === INSTRUCTOR_PASSWORD) {
-                localStorage.clear();
-                alert("Authorization granted. All device lockout states have been successfully cleared.");
-                location.reload();
-            } else if (userInput !== null) {
-                alert("Access Denied: Incorrect password configuration.");
-            }
+            const photoConfirmationText = `✅ Finished Exam: I have uploaded clear photo captures of all my written test equations to your phone.`;
+            window.open(`https://wa.me/${DIRECT_TEACHER_PHONE}?text=${encodeURIComponent(photoConfirmationText)}`, '_blank');
         }
 
         function setExamStatusAndHome() {
