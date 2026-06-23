@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Appearich Portal</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
     <style>
         :root {
             --primary-yellow: #facc15; 
@@ -93,7 +98,6 @@
 </head>
 <body>
 
-    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="logo-container">
             <div class="logo-main-text">Appearich</div>
@@ -101,7 +105,6 @@
         </div>
     </div>
 
-    <!-- DASHBOARD VIEW -->
     <div id="main-dashboard" class="app-container hidden">
         <div class="hero-banner-full">
             <h1>Appearich</h1>
@@ -111,32 +114,29 @@
         <h2 class="section-title">Available Assessments</h2>
         <div class="papers-grid">
             
-            <!-- Mathematics Card -->
             <div class="paper-card">
                 <div>
                     <h3>Mathematics</h3>
                     <span class="subject-badge">Core Assessment</span>
-                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend server.</p>
+                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend cloud database.</p>
                 </div>
                 <button onclick="fetchExamAndInitialize('math')">Attempt Paper</button>
             </div>
 
-            <!-- Science Card -->
             <div class="paper-card">
                 <div>
                     <h3>Science</h3>
                     <span class="subject-badge">Core Assessment</span>
-                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend server.</p>
+                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend cloud database.</p>
                 </div>
                 <button onclick="fetchExamAndInitialize('science')">Attempt Paper</button>
             </div>
 
-            <!-- English Card -->
             <div class="paper-card">
                 <div>
                     <h3>English</h3>
                     <span class="subject-badge">Core Assessment</span>
-                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend server.</p>
+                    <p>Click to retrieve dynamic question sets and testing time limits directly from the testing backend cloud database.</p>
                 </div>
                 <button onclick="fetchExamAndInitialize('english')">Attempt Paper</button>
             </div>
@@ -144,14 +144,12 @@
         </div>
     </div>
 
-    <!-- RUNTIME TEST WORKSPACE -->
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window" id="secure-container-frame">
             
-            <!-- SECURE CURTAIN COVER SYSTEM -->
             <div id="secure-blankout-curtain" class="hidden">
                 <div style="color:var(--primary-yellow); font-size:2rem; margin-bottom:10px;">⚠️ PROTECTION LOCK ACTIVE</div>
-                <p style="margin:0; padding:0 20px; font-size:1.1rem; color:#cbd5e1;">Content unavailable due to focus loss violations. Auto-submitting to server...</p>
+                <p style="margin:0; padding:0 20px; font-size:1.1rem; color:#cbd5e1;">Content unavailable due to focus loss violations. Auto-submitting logs to cloud database...</p>
             </div>
 
             <span class="timer">Time Left: <span id="time-display">00:00</span></span>
@@ -162,21 +160,19 @@
         </div>
     </div>
 
-    <!-- SCANNING UPLOADER MENU -->
     <div id="upload-workspace-screen" class="app-container hidden">
         <div class="upload-window">
             <h2>Upload Answer Sheets</h2>
             <p>Take pictures or photos of your handwritten calculations document steps safely below.</p>
             <form onsubmit="finalSystemSubmit(event)">
                 <div class="file-input-group">
-                    <input type="file" accept="image/*,application/pdf" multiple required>
+                    <input type="file" id="student-files-input" accept="image/*,application/pdf" multiple required>
                 </div>
                 <button type="submit" style="background:#111827; color:var(--primary-yellow); padding:15px 40px; border:none; font-weight:bold; font-size:1.1rem; border-radius:6px; cursor:pointer;">Submit Final Documents</button>
             </form>
         </div>
     </div>
 
-    <!-- TERMINAL SECURITY SCREEN LOCK -->
     <div id="lockout-screen" class="warning-screen hidden">
         <h1 style="color:var(--danger-red); font-size:3rem;">EXAM CLOSED & AUTO-SUBMITTED</h1>
         <p style="max-width:600px; font-size:1.2rem;">A window layout shift or focus distraction was verified. To maintain test security, visibility was hidden instantly and your current progress data was uploaded to your instructor's server.</p>
@@ -184,11 +180,23 @@
     </div>
 
     <script>
+        // CENTRAL FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_2xH4d8oAxPjZd9_DT0QIi4T1-dtIc6U",
+            authDomain: "appearich.firebaseapp.com",
+            projectId: "appearich",
+            storageBucket: "appearich.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:123456:web:abcd1234"
+        };
+
+        // Initialize connection endpoints
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
         let activeTimer, timeLeft, isExamActive = false, currentSubjectKey = "";
         
-        // Define your central server base domain connection here
-        const SERVER_BASE_URL = "https://your-server-domain.com/api";
-
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -200,23 +208,22 @@
             }, 2000); 
         });
 
-        // LIVE SERVER HOOK: Fetches questions and dynamic time limits directly from your API
+        // CONNECTED TO CLOUD FIRESTORE: Pulls questions instantly 
         function fetchExamAndInitialize(subjectKey) {
             currentSubjectKey = subjectKey;
             
-            // Example Request: https://your-server-domain.com/api/get-exam?subject=math
-            fetch(`${SERVER_BASE_URL}/get-exam?subject=${subjectKey}`)
-                .then(res => {
-                    if (!res.ok) throw new Error("Exam profile could not be loaded from server.");
-                    return res.json();
-                })
-                .then(data => {
-                    // Expecting server response format: { title: "...", durationSeconds: 3600, questionContent: "..." }
+            db.collection("exams").doc(subjectKey).get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        alert("Exam configuration profile could not be located inside your Firestore 'exams' collection.");
+                        return;
+                    }
+                    const data = doc.data();
                     startExamSequence(data.title, data.durationSeconds, data.questionContent);
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("Connection Error: Unable to sync test sheets from the database server.");
+                    alert("Database Sync Failure: Unable to handshake with cloud properties.");
                 });
         }
 
@@ -269,25 +276,20 @@
             document.removeEventListener('mouseleave', blankAndSubmitImmediately);
             window.removeEventListener('resize', verifyDisplayDimensions);
 
-            // Payload sent upstream to your server reporting cheat status
-            const violationPayload = {
+            // Post emergency incident parameters straight to Firestore
+            db.collection("submissions").add({
                 subject: currentSubjectKey,
-                logStatus: "AUTO_SUBMIT_VIOLATION",
+                status: "AUTO_SUBMIT_VIOLATION",
                 timeRemaining: timeLeft,
-                timestamp: new Date().toISOString()
-            };
-
-            fetch(`${SERVER_BASE_URL}/auto-submit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(violationPayload)
-            }).catch(e => console.error("Emergency sync packet failed:", e));
-
-            setTimeout(() => {
-                document.getElementById('exam-workspace-screen').classList.add('hidden');
-                document.getElementById('secure-blankout-curtain').classList.add('hidden');
-                document.getElementById('lockout-screen').classList.remove('hidden');
-            }, 300);
+                timestamp: new Date().toISOString(),
+                type: "CHEAT_DETECTION"
+            }).then(() => {
+                setTimeout(() => {
+                    document.getElementById('exam-workspace-screen').classList.add('hidden');
+                    document.getElementById('secure-blankout-curtain').classList.add('hidden');
+                    document.getElementById('lockout-screen').classList.remove('hidden');
+                }, 300);
+            }).catch(e => console.error("Emergency sync database failure:", e));
         }
 
         function finishExamAndGoToUpload() {
@@ -300,40 +302,39 @@
             document.getElementById('upload-workspace-screen').classList.remove('hidden');
         }
 
+        // CONNECTED TO FIRESTORE + CLOUD STORAGE: Streamlines files up seamlessly
         function finalSystemSubmit(e) {
             e.preventDefault();
-            const files = document.querySelector('input[type="file"]').files;
+            const fileInput = document.getElementById('student-files-input');
+            const files = fileInput.files;
             if (files.length === 0) return;
 
-            const formData = new FormData();
-            formData.append('subject', currentSubjectKey);
-            for (let i = 0; i < files.length; i++) {
-                formData.append('student_scripts', files[i]);
-            }
+            const file = files[0];
+            const storageRef = storage.ref('submissions/' + Date.now() + '-' + file.name);
 
-            fetch(`${SERVER_BASE_URL}/upload-answers`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert("Upload Complete! Documents sent safely to your instructor database server.");
-                document.getElementById('upload-workspace-screen').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Upload error encountered. Please check connection parameters.");
-            });
+            // Upload actual image file to bucket room
+            storageRef.put(file)
+                .then(snapshot => snapshot.ref.getDownloadURL())
+                .then(downloadURL => {
+                    // Save access track record log sheet inside database entry
+                    return db.collection("submissions").add({
+                        subject: currentSubjectKey,
+                        status: "COMPLETED",
+                        timestamp: new Date().toISOString(),
+                        type: "MANUAL_UPLOAD",
+                        fileUrl: downloadURL
+                    });
+                })
+                .then(() => {
+                    alert("Upload Complete! Documents sent safely to your cloud storage vault.");
+                    document.getElementById('upload-workspace-screen').classList.add('hidden');
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Upload encountered a bucket storage fault. Check configuration permissions rules.");
+                });
         }
     </script>
-   const firebaseConfig = {
-    apiKey: "AIzaSyA_2xH4d8oAxPjZd9_DT0QIi4T1-dtIc6U.",  // <-- Make sure this isn't "PASTE_YOUR_API_KEY"
-    authDomain: "appearich.firebaseapp.com",
-    projectId: "appearich",
-    storageBucket: "appearich.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:123456:web:abcd1234"
-};
 </body>
 </html>
