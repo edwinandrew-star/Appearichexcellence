@@ -154,8 +154,8 @@
     </div>
 
     <script>
-        // Clean, direct endpoint link pointing straight to live raw status JSON file
-        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.json";
+        // Dedicated Remote API Link pointing to your explicit revision
+        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/70f7b83e3f2d6c4c13361988bfe7632a7787e33d/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         const localExamsData = {
@@ -193,10 +193,14 @@
                 document.getElementById('splash-screen').classList.add('hidden');
                 syncWithRemoteGistServer();
             }, 2000); 
+
+            // Keep tracking your remote control payload adjustments seamlessly every 5 seconds
+            setInterval(syncWithRemoteGistServer, 5000);
         });
 
         async function syncWithRemoteGistServer() {
             try {
+                // Generates an aggressive unique stamp to bypass local cache memories instantly
                 const cacheBuster = Math.random().toString(36).substring(2);
                 const response = await fetch(`${REMOTE_JSON_URL}?nocache=${cacheBuster}`);
                 const data = await response.json();
@@ -211,13 +215,15 @@
                     return;
                 }
             } catch (e) {
-                console.log("Remote loop tracking offline fallback");
+                console.log("Awaiting link state sync updates...");
             }
 
             if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen("cheated");
             } else if (checkFullScreenEnforcement()) {
-                document.getElementById('main-dashboard').classList.remove('hidden');
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                }
             }
         }
 
@@ -327,15 +333,12 @@
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.remove('hidden');
             }
-            
-            setTimeout(syncWithRemoteGistServer, 5000);
         }
 
         function confirmPhotosSent() {
             document.getElementById('lockout-screen').classList.add('hidden');
             document.getElementById('restored-screen').classList.remove('hidden');
             sendWhatsappNotification(`✅ UPDATE: Student confirmed sending calculation photos.`);
-            setTimeout(syncWithRemoteGistServer, 5000);
         }
     </script>
 </body>
