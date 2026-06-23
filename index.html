@@ -20,7 +20,7 @@
             background-color: var(--pure-white);
             color: var(--dark-charcoal);
             margin: 0; padding: 0; min-height: 100vh;
-            overflow-x: hidden; user-select: none; -webkit-user-select: none;
+            user-select: none; -webkit-user-select: none;
         }
 
         .hidden { display: none !important; }
@@ -51,34 +51,19 @@
         .paper-card { background: var(--card-gray); border-radius: 10px; border: 2px solid #e5e7eb; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
         .paper-card button { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* EXAM WORKING MODULES */
+        /* EXAM INTERFACE */
         .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; position: relative; }
         .timer { font-size: 1.25rem; font-weight: bold; color: var(--pure-white); background: var(--danger-red); padding: 6px 14px; border-radius: 6px; float: right; }
         .file-display-container { width: 100%; margin: 20px 0; background: var(--card-gray); padding: 10px; border: 2px solid #e5e7eb; box-sizing: border-box; }
 
-        /* ANTI-CHEAT PRIVACY COVER */
-        #secure-blankout-curtain {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;
-            color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; font-weight: bold;
-        }
+        /* SCREENS */
+        .warning-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        .action-btn { background: var(--primary-yellow); border: none; color: black; padding: 15px 40px; font-weight: bold; font-size: 1.1rem; border-radius: 6px; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        .action-btn:hover { background: #e2b80f; }
 
-        /* UPLOADER FLOW COMPONENT */
-        .upload-window { background: var(--card-gray); padding: 40px; border-radius: 12px; border: 3px dashed var(--primary-yellow); text-align: center; }
-        .file-box { background: white; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; margin: 20px 0; cursor: pointer; }
-        
-        /* ATTACHED WORKPAPER IMAGES */
-        .preview-gallery img { max-width: 100%; height: auto; margin-top: 15px; border: 2px solid #111827; border-radius: 4px; display: block; }
-        .receipt-card { background: white; border: 2px solid #111827; border-radius: 8px; padding: 30px; text-align: left; max-width: 650px; margin: 20px auto; }
-        .warning-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        /* PRINTER ENGINE MAPPING */
-        @media print {
-            body * { visibility: hidden; }
-            #upload-workspace-screen, #upload-workspace-screen * { visibility: visible; }
-            #upload-workspace-screen { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-            .preview-gallery img { page-break-inside: avoid; }
-        }
+        /* SCORE DASHBOARD STYLE */
+        .score-board { background: #1e293b; padding: 25px; border-radius: 8px; border: 2px solid var(--primary-yellow); margin-top: 20px; width: 100%; max-width: 500px; text-align: left; }
+        .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
     </style>
 </head>
 <body>
@@ -95,6 +80,16 @@
             <h1>Appearich</h1>
             <p>"Saw a seed of preparation today for ur next chapter"</p>
         </div>
+
+        <h2 class="section-title">Your Published Grades</h2>
+        <div style="margin-bottom: 40px;">
+            <div class="score-board">
+                <div class="score-row" style="font-weight: bold; color: var(--primary-yellow);"><span>Subject Name</span> <span>Achieved Grade</span></div>
+                <div class="score-row" style="color: #cbd5e1;"><span>Mathematics Core Paper</span> <span id="grade-math-box">PENDING (Click Attempt below to check status)</span></div>
+                <div class="score-row" style="color: #cbd5e1;"><span>Science Core Paper</span> <span id="grade-science-box">NOT ATTEMPTED</span></div>
+            </div>
+        </div>
+
         <h2 class="section-title">Available Assessments</h2>
         <div class="papers-grid">
             <div class="paper-card">
@@ -117,82 +112,95 @@
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <div id="secure-blankout-curtain" class="hidden">
-                <div style="color:var(--primary-yellow); font-size:2rem; margin-bottom:10px;">⚠️ PROTECTION LOCK ACTIVE</div>
-                <p>Content hidden instantly due to window focus security breach.</p>
-            </div>
             <span class="timer">Time Left: <span id="time-display">00:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
-            <button onclick="goToPhotoUploadStep()" style="background:var(--success-green); color:white; width:100%; border:none; padding:16px; font-size:1.1rem; font-weight:bold; border-radius:6px; cursor:pointer;">Finish Exam & Upload Solution Photos</button>
-        </div>
-    </div>
-
-    <div id="upload-workspace-screen" class="app-container hidden">
-        <div class="upload-window">
-            
-            <div id="photo-selector-zone" class="no-print">
-                <h2>Upload Your Handwritten Solutions</h2>
-                <p>Use your phone or webcam to snap clear photos of your calculations sheets before compilation.</p>
-                <div class="file-box" onclick="document.getElementById('camera-files-hook').click()">
-                    <span style="font-size: 2.5rem;">📸</span>
-                    <p style="margin:10px 0 0 0; font-weight:bold; color:#475569;">Click here to Take Photo or Choose Images</p>
-                    <input type="file" id="camera-files-hook" accept="image/*" multiple style="display:none;" onchange="processSolutionPhotos(this)">
-                </div>
-                <div id="upload-status-counter" style="font-weight:bold; color:#15803d; margin-bottom:15px;">0 Photos Selected</div>
-                <button onclick="compileFinalPrintReceipt('COMPLETED')" style="background:#111827; color:var(--primary-yellow); padding:14px 40px; border:none; font-weight:bold; border-radius:6px; cursor:pointer; width:100%;">Compile Final PDF Bundle</button>
-            </div>
-
-            <div id="compiled-receipt-zone" class="hidden">
-                <div class="receipt-card">
-                    <div style="text-align: center; border-bottom: 2px dashed #111827; padding-bottom: 15px; margin-bottom: 15px;">
-                        <h3 style="margin: 0; text-transform: uppercase;">Appearich Academic Verification Bundle</h3>
-                        <small style="color:#6b7280;">Secure Submission Document Package</small>
-                    </div>
-                    <p><strong>Assessment Subject:</strong> <span id="receipt-subject">---</span></p>
-                    <p><strong>Tracking Status:</strong> <span id="receipt-status">---</span></p>
-                    <p><strong>Time Left on Clock:</strong> <span id="receipt-time">---</span></p>
-                    <p><strong>System Hash Code:</strong> <span id="receipt-code" style="font-family:monospace; font-weight:bold; color:#15803d;">---</span></p>
-                    
-                    <h4 style="margin:30px 0 10px 0; border-top:1px solid #111827; padding-top:15px; text-transform:uppercase;">Attached Solution Worksheets:</h4>
-                    
-                    <div id="receipt-gallery-injection" class="preview-gallery"></div>
-                </div>
-
-                <button class="no-print" onclick="window.print()" style="background:#15803d; color:white; padding:15px 40px; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">Save Bundle as PDF</button>
-                <button class="no-print" onclick="location.reload()" style="background:#111827; color:var(--primary-yellow); padding:15px 40px; border:none; font-weight:bold; border-radius:6px; cursor:pointer; margin-left:10px;">Return to Dashboard</button>
-            </div>
-
+            <button onclick="triggerManualFinish()" style="background:var(--success-green); color:white; width:100%; border:none; padding:16px; font-size:1.1rem; font-weight:bold; border-radius:6px; cursor:pointer;">Finish Exam & Submit Work</button>
         </div>
     </div>
 
     <div id="lockout-screen" class="warning-screen hidden">
-        <h1 style="color:var(--danger-red); font-size:3rem;">EXAM TERMINATED VIA VIOLATION</h1>
-        <p style="max-width:600px; font-size:1.2rem; text-align:center;">Focus loss verify alert triggered. You must proceed directly to generate the lock receipt documentation layout.</p>
-        <button onclick="handleCheatedCompilation()" style="background:var(--primary-yellow); border:none; color:black; padding:12px 30px; font-weight:bold; border-radius:6px; cursor:pointer; margin-top:20px;">Generate Security Failure PDF</button>
+        <h1 style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">EXAM CLOSED & LOCKED</h1>
+        <p style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
+            Time has expired or an unauthorized window tab shift occurred.<br>
+            <strong>Your access to the exam paper has been terminated.</strong>
+        </p>
+        <div style="background:#111827; padding:20px; border-radius:8px; border:2px dashed var(--primary-yellow); margin-top:20px; max-width:500px;">
+            <p style="margin:0; font-weight:bold; color:white;">👉 INSTRUCTIONS FOR CANDIDATE:</p>
+            <ol style="text-align:left; color:#94a3b8; margin:10px 0 0 0; padding-left:20px;">
+                <li>Take another phone right now.</li>
+                <li>Snap clear photos of your handwritten calculations.</li>
+                <li>Send all photos to your teacher's phone directly.</li>
+            </ol>
+        </div>
+        <button onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
+    </div>
+
+    <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
+        <span style="font-size: 4rem;">⏳</span>
+        <h1 style="color:var(--primary-yellow); font-size:2.8rem; margin:10px 0;">WAIT FOR THE SCORE</h1>
+        <p style="max-width:600px; font-size:1.2rem; color:#cbd5e1; line-height:1.6;">
+            Your handwritten photo solutions have been logged.<br> 
+            Please wait for your instructor to finish marking your papers manually. Your score will update on the main dashboard as soon as grading concludes.
+        </p>
+        <button onclick="setExamStatusAndHome()" class="action-btn" style="background:white; color:black;">Go to Home Dashboard</button>
     </div>
 
     <script>
+        // ==========================================
+        // INSTRUCTOR GRADEBOOK CONFIGURATION
+        // EDIT THIS STATUS STRING WHEN YOU FINISH MARKING:
+        // ==========================================
+        const PUBLISHED_GRADES = {
+            math: "WAIT FOR THE SCORE", // <-- Change this text to her grade later! (e.g. "85/100" or "Grade A")
+            science: "NOT ATTEMPTED",
+            english: "NOT ATTEMPTED"
+        };
+
+        const WHATSAPP_PHONE = "+255764519027"; 
+        const CALLMEBOT_API_KEY = "999999";    
+
         const localExamsData = {
             math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 1800, isPdf: true, fileLink: "math-paper.pdf" },
             science: { title: "Science Core Practice Exam Paper", durationSeconds: 1800, isPdf: false, fileLink: "science-sheet.png" },
             english: { title: "English Core Practice Exam Paper", durationSeconds: 1800, isPdf: true, fileLink: "english-paper.pdf" }
         };
 
-        let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", compiledImagesBase64 = [];
+        let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "";
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Render the grades from your layout settings
+            document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
+            document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
+
             setTimeout(() => {
                 document.getElementById('splash-screen').classList.add('hidden');
                 document.getElementById('main-dashboard').classList.remove('hidden');
             }, 2000); 
         });
 
+        function sendWhatsappNotification(messageText) {
+            const alertUrl = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`;
+            fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
+        }
+
         function loadLocalExam(subjectKey) {
+            // Block re-entry if exam was already locked or finished
+            if(localStorage.getItem(`status_${subjectKey}`) === 'locked') {
+                alert("Access Denied: This exam setup is closed and locked permanently.");
+                return;
+            }
+
             const exam = localExamsData[subjectKey];
             if (!exam) return;
-            selectedSubjectTitle = exam.title; timeLeft = exam.durationSeconds; isExamActive = true;
+            
+            selectedSubjectTitle = exam.title; 
+            timeLeft = exam.durationSeconds; 
+            isExamActive = true;
+
+            sendWhatsappNotification(`📢 ALERT: Student has STARTED attempting: "${selectedSubjectTitle}".`);
+
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.remove('hidden');
             document.getElementById('exam-title-header').innerText = exam.title;
@@ -205,7 +213,7 @@
             }
 
             activeTimer = setInterval(() => {
-                if(timeLeft <= 0) { clearInterval(activeTimer); goToPhotoUploadStep(); }
+                if(timeLeft <= 0) { handleTimeoutClose("TIMEOUT_EXPIRED"); } 
                 else {
                     timeLeft--;
                     let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
@@ -213,75 +221,42 @@
                 }
             }, 1000);
 
-            document.addEventListener('visibilitychange', alertLockViolation);
-            window.addEventListener('blur', alertLockViolation);
+            document.addEventListener('visibilitychange', handleCheatingDetection);
+            window.addEventListener('blur', handleCheatingDetection);
         }
 
-        function alertLockViolation() {
+        function handleCheatingDetection() {
+            if (isExamActive && (document.hidden || !document.hasFocus())) {
+                handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+            }
+        }
+
+        function triggerManualFinish() { handleTimeoutClose("MANUAL_COMPLETION"); }
+
+        function handleTimeoutClose(reasonCode) {
             if (!isExamActive) return;
             isExamActive = false; clearInterval(activeTimer);
-            document.getElementById('secure-blankout-curtain').classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('exam-workspace-screen').classList.add('hidden');
-                document.getElementById('lockout-screen').classList.remove('hidden');
-            }, 1000);
-        }
+            
+            document.removeEventListener('visibilitychange', handleCheatingDetection);
+            window.removeEventListener('blur', handleCheatingDetection);
 
-        function goToPhotoUploadStep() {
-            isExamActive = false; clearInterval(activeTimer);
-            document.removeEventListener('visibilitychange', alertLockViolation);
-            window.removeEventListener('blur', alertLockViolation);
+            // Save permanent block state locally
+            localStorage.setItem("status_math", "locked");
+
+            sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Student is taking photos.`);
+
             document.getElementById('exam-workspace-screen').classList.add('hidden');
-            document.getElementById('upload-workspace-screen').classList.remove('hidden');
+            document.getElementById('lockout-screen').classList.remove('hidden');
         }
 
-        // Processes images into raw string code data to stay completely free
-        function processSolutionPhotos(inputHook) {
-            const files = inputHook.files;
-            if(!files.length) return;
-
-            for(let i = 0; i < files.length; i++) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    compiledImagesBase64.push(e.target.result);
-                    document.getElementById('upload-status-counter').innerText = `${compiledImagesBase64.length} Solution Photo(s) Attached Successfully!`;
-                }
-                reader.readAsDataURL(files[i]);
-            }
-        }
-
-        function handleCheatedCompilation() {
+        function confirmPhotosSent() {
             document.getElementById('lockout-screen').classList.add('hidden');
-            document.getElementById('upload-workspace-screen').classList.remove('hidden');
-            document.getElementById('photo-selector-zone').classList.add('hidden'); 
-            compileFinalPrintReceipt('SECURITY_LOCKOUT_VIOLATION');
+            document.getElementById('restored-screen').classList.remove('hidden');
+            sendWhatsappNotification(`✅ UPDATE: Student confirmed sending calculation photos.`);
         }
 
-        function compileFinalPrintReceipt(statusString) {
-            let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-            let hashToken = "APR-" + Math.floor(100000 + Math.random() * 900000) + "-SEC";
-
-            document.getElementById('receipt-subject').innerText = selectedSubjectTitle;
-            document.getElementById('receipt-status').innerText = statusString;
-            document.getElementById('receipt-time').innerText = `${m}m ${s}s remaining`;
-            document.getElementById('receipt-code').innerText = hashToken;
-
-            let gallery = document.getElementById('receipt-gallery-injection');
-            gallery.innerHTML = ""; 
-
-            if(compiledImagesBase64.length === 0 && statusString !== 'SECURITY_LOCKOUT_VIOLATION') {
-                gallery.innerHTML = "<p style='color:var(--danger-red); font-style:italic;'>No handwritten calculation worksheets were provided or uploaded by candidate.</p>";
-            } else {
-                compiledImagesBase64.forEach((base64String, indexing) => {
-                    gallery.innerHTML += `<div style="margin-top:20px;"><small style="font-weight:bold; color:#4b5563;">Worksheet Document Page ${indexing + 1}:</small><img src="${base64String}" /></div>`;
-                });
-            }
-
-            document.getElementById('photo-selector-zone').classList.add('hidden');
-            document.getElementById('compiled-receipt-zone').classList.remove('hidden');
-
-            // Trigger saving sequence
-            setTimeout(() => { window.print(); }, 800);
+        function setExamStatusAndHome() {
+            location.reload();
         }
     </script>
 </body>
