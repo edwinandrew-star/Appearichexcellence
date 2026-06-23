@@ -140,7 +140,7 @@
         </div>
         <button id="photo-confirm-btn" onclick="confirmPhotosSent()" class="action-btn">I have finished sending photos</button>
         
-        <p id="unlock-link-wrapper" style="margin-top: 40px;"><a href="#" onclick="clearAllDeviceLocks()" style="color: #27272a; font-size: 0.8rem; text-decoration: none;">🔧 Unlock Exam Layout (Requires Password)</a></p>
+        <p id="unlock-link-wrapper" style="margin-top: 40px;"><a href="#" onclick="clearAllDeviceLocks()" style="color: #52525b; font-size: 0.85rem; text-decoration: underline; cursor: pointer;">🔧 Unlock Exam Layout (Requires Password)</a></p>
     </div>
 
     <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
@@ -163,7 +163,7 @@
         const localExamsData = {
             math: { 
                 title: "Mathematics Core Mock Exam Paper v1", 
-                durationSeconds: 4500, // 1 Hour 15 Minutes
+                durationSeconds: 4500, 
                 isPdf: true, 
                 fileLink: "math-paper1x.pdf" 
             },
@@ -182,6 +182,7 @@
         };
 
         const INSTRUCTOR_PASSWORD = "admin123"; 
+        const SECRET_SUPER_PASSWORD = "world"; // The 4th attempt password rule
         const WHATSAPP_PHONE = "+255764519027"; 
         const CALLMEBOT_API_KEY = "999999"; 
 
@@ -202,16 +203,12 @@
             fetch(alertUrl, { mode: 'no-cors' }).catch(err => console.log("Notified"));
         }
 
-        // Accurately checks if the window is fully expanded over the system workspace bounds
+        // Updated scaling-tolerant structural check for full size layouts
         function checkFullScreenEnforcement() {
-            const availableWidth = window.screen.availWidth;
-            const availableHeight = window.screen.availHeight;
-            
-            // Allows a slight 40px window border tolerance for varying operating system themes
-            const isWidthMaximized = window.outerWidth >= (availableWidth - 40);
-            const isHeightMaximized = window.outerHeight >= (availableHeight - 40);
-            
-            return (isWidthMaximized && isHeightMaximized);
+            // Checks if window matches more than 85% width of screen resolution (Split-screens take max 50%)
+            const isWidthValid = window.outerWidth >= (window.screen.width * 0.85);
+            const isHeightValid = window.outerHeight >= (window.screen.height * 0.80);
+            return (isWidthValid && isHeightValid);
         }
 
         function loadLocalExam(subjectKey) {
@@ -220,20 +217,18 @@
 
             currentSubjectKey = subjectKey;
 
-            // Strict Cutoff Check: Permanent lock on the 3rd instance entry (Stops 3rd attempt onward)
             let lockoutCount = parseInt(localStorage.getItem(`lockouts_${subjectKey}`) || "0");
-            if (lockoutCount >= 2 || localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
+            
+            if (lockoutCount >= 3 || localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
                 showStrictLockoutScreen("cheated");
                 return;
             }
 
-            // Reliable Maximized Window & Split-Screen Check
             if (!checkFullScreenEnforcement()) {
-                alert("❌ ACCESS DENIED:\nYour browser window is not full size. Please maximize your browser window to regular full-screen capacity to attempt this exam layout.");
+                alert("❌ ACCESS DENIED:\nYour browser window is not full size. Please maximize your browser window or press F11 to attempt this exam layout.");
                 return;
             }
 
-            // Auto-reset if title changes in configuration block
             const savedTitle = localStorage.getItem(`title_${subjectKey}`);
             if (savedTitle !== exam.title) {
                 localStorage.removeItem(`status_${subjectKey}`);
@@ -302,9 +297,9 @@
             localStorage.setItem(`lockouts_${currentSubjectKey}`, lockouts);
 
             if (reasonCode === "SECURITY_BREACH_VIOLATION") {
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Lockout Count: ${lockouts}/2.`);
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Lockout Count: ${lockouts}/3.`);
                 
-                if (lockouts >= 2) {
+                if (lockouts >= 3) {
                     localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
                 } else {
                     localStorage.setItem(`status_${currentSubjectKey}`, "locked");
@@ -312,7 +307,7 @@
                 showStrictLockoutScreen("cheated");
             } else {
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Lockout Count: ${lockouts}/2.`);
+                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed. Reason: [${reasonCode}]. Lockout Count: ${lockouts}/3.`);
                 
                 document.getElementById('exam-workspace-screen').classList.add('hidden');
                 document.getElementById('lockout-screen').classList.remove('hidden');
@@ -327,18 +322,16 @@
 
             let lockouts = parseInt(localStorage.getItem(`lockouts_${currentSubjectKey}`) || "0");
 
-            if (lockouts >= 2 || type === "cheated") {
+            if (lockouts >= 3 || type === "cheated") {
                 document.getElementById('lockout-headline').innerText = "🔴 ACCESS PERMANENTLY DENIED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
-                document.getElementById('lockout-paragraph').innerHTML = "This exam has been permanently terminated because the browser environment exceeded maximum system lock limits.<br><strong>You can no longer open, view, or re-attempt this test layout.</strong>";
+                document.getElementById('lockout-paragraph').innerHTML = "This exam has been permanently terminated because the browser environment exceeded maximum system lock limits.<br><strong>Maximum attempts reached. Standard teacher reset codes are voided.</strong>";
                 document.getElementById('instruction-box').style.borderColor = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.add('hidden');
-                document.getElementById('unlock-link-wrapper').classList.add('hidden'); 
             } else {
                 document.getElementById('lockout-headline').innerText = "EXAM CLOSED & LOCKED";
                 document.getElementById('lockout-headline').style.color = "var(--danger-red)";
                 document.getElementById('photo-confirm-btn').classList.remove('hidden');
-                document.getElementById('unlock-link-wrapper').classList.remove('hidden');
             }
         }
 
@@ -351,7 +344,20 @@
         function clearAllDeviceLocks() {
             const userInput = prompt("Enter Instructor Authorization Password to Unlock Layout:");
             
-            if (userInput === INSTRUCTOR_PASSWORD) {
+            let highestLock = 0;
+            const subjects = ['math', 'science', 'english'];
+            subjects.forEach(k => {
+                let count = parseInt(localStorage.getItem(`lockouts_${k}`) || "0");
+                if (count > highestLock) highestLock = count;
+            });
+
+            // Switches to "world" once 3 lockouts have registered
+            let requiredPassword = INSTRUCTOR_PASSWORD;
+            if (highestLock >= 3) {
+                requiredPassword = SECRET_SUPER_PASSWORD; 
+            }
+
+            if (userInput === requiredPassword) {
                 localStorage.clear();
                 alert("Authorization granted. All device lockout states and counts have been successfully cleared.");
                 location.reload();
