@@ -151,7 +151,7 @@
         </div>
          
         <div id="master-reset-container" style="margin-top: 30px;">
-            <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure connection verification cycle running...</p>
+            <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure connection verification cycle running... <span id="bg-live-countdown" style="color: var(--primary-yellow); font-weight: bold; margin-left: 5px;"></span></p>
         </div>
     </div>
 
@@ -165,7 +165,6 @@
     </div>
 
     <script>
-        // CRITICAL FIX: Removed the static commit ID hash from the path URL structure to make tracking real-time
         const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
@@ -178,9 +177,9 @@
         const WHATSAPP_PHONE = "+255764519027"; 
         const CALLMEBOT_API_KEY = "999999"; 
 
-        let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
+        let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
-        // INPUT DISABLING LOGIC
+        // HARD OVERRIDE OPERATIONS
         document.addEventListener('contextmenu', event => event.preventDefault()); 
         document.addEventListener('selectstart', event => event.preventDefault()); 
         
@@ -191,14 +190,14 @@
                 (e.ctrlKey && e.keyCode === 83) ||
                 (e.altKey && e.keyCode === 9)) { 
                 e.preventDefault();
-                if (isExamActive) handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+                if (isExamActive) handleViolationLockout();
                 return false;
             }
 
             if (e.key === "PrintScreen" || e.keyCode === 44) {
                 e.preventDefault();
                 navigator.clipboard.writeText("Screenshot Blocked.");
-                if (isExamActive) handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+                if (isExamActive) handleViolationLockout();
             }
         });
 
@@ -226,6 +225,12 @@
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
             document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
 
+            // Recover tracking properties if page was abruptly reloaded during an active session
+            currentSubjectKey = localStorage.getItem('active_subject_key') || "";
+            if (currentSubjectKey) {
+                selectedSubjectTitle = localExamsData[currentSubjectKey].title;
+            }
+
             runMainScreenEnforcement();
 
             setTimeout(() => {
@@ -233,8 +238,41 @@
                 syncWithRemoteGistServer();
             }, 2000); 
 
-            setInterval(syncWithRemoteGistServer, 3000);
+            // Initialize global high-precision absolute time clock cycle loop
+            globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
         });
+
+        function executeGlobalClockTick() {
+            // Performs sync loops simultaneously with clock checks
+            syncWithRemoteGistServer();
+
+            const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
+            if (!deadlineStr || !currentSubjectKey) return;
+
+            const targetDeadline = parseInt(deadlineStr);
+            const now = Date.now();
+            const remainingSeconds = Math.round((targetDeadline - now) / 1000);
+
+            if (remainingSeconds <= 0) {
+                // Time explicitly finished completely inside background processing bounds
+                localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+                localStorage.removeItem('exam_deadline_timestamp');
+                localStorage.removeItem('active_subject_key');
+                isExamActive = false;
+                
+                sendWhatsappNotification(`⏰ TIMEOUT: Exam time has expired for "${selectedSubjectTitle}". Screen locked.`);
+                showStrictLockoutScreen();
+                document.getElementById('bg-live-countdown').innerText = "(Time Expired)";
+            } else {
+                let mins = Math.floor(remainingSeconds / 60);
+                let secs = remainingSeconds % 60;
+                let formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
+                
+                // Keep workspace view and lock screen text tracking elements updated in unison
+                document.getElementById('time-display').innerText = formattedTime;
+                document.getElementById('bg-live-countdown').innerText = `(${formattedTime} remaining)`;
+            }
+        }
 
         async function syncWithRemoteGistServer() {
             try {
@@ -251,9 +289,7 @@
                     }
                     return;
                 }
-            } catch (e) {
-                console.log("Sync handshake state...");
-            }
+            } catch (e) {}
 
             if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
@@ -276,7 +312,7 @@
             if (!checkFullScreenEnforcement()) {
                 document.getElementById('screen-size-blocker').classList.remove('hidden');
                 document.getElementById('main-dashboard').classList.add('hidden');
-                if (isExamActive) handleTimeoutClose("SECURITY_BREACH_VIOLATION");
+                if (isExamActive) handleViolationLockout();
             } else {
                 document.getElementById('screen-size-blocker').classList.add('hidden');
                 if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
@@ -304,8 +340,12 @@
             if (!exam) return;
 
             selectedSubjectTitle = exam.title; 
-            timeLeft = exam.durationSeconds; 
             isExamActive = true;
+
+            // Establish the ABSOLUTE target expiration marker in storage
+            const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
+            localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
+            localStorage.setItem('active_subject_key', subjectKey);
 
             sendWhatsappNotification(`📢 ALERT: Student started "${selectedSubjectTitle}".`);
             document.getElementById('main-dashboard').classList.add('hidden');
@@ -315,48 +355,40 @@
             let injectionBox = document.getElementById('questions-injection-box');
             injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
 
-            const endTime = Date.now() + (timeLeft * 1000);
-
-            activeTimer = setInterval(() => {
-                const now = Date.now();
-                timeLeft = Math.round((endTime - now) / 1000);
-
-                if (timeLeft <= 0) { 
-                    handleTimeoutClose("TIMEOUT_EXPIRED"); 
-                } else {
-                    let mins = Math.floor(timeLeft / 60), secs = timeLeft % 60;
-                    document.getElementById('time-display').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-
             document.addEventListener('visibilitychange', handleCheatingDetection);
             window.addEventListener('blur', handleCheatingDetection);
         }
 
         function handleCheatingDetection() { 
             if (isExamActive && (document.hidden || !document.hasFocus())) {
-                handleTimeoutClose("SECURITY_BREACH_VIOLATION"); 
+                handleViolationLockout(); 
             }
         }
         
-        function triggerManualFinish() { handleTimeoutClose("MANUAL_COMPLETION"); }
+        function triggerManualFinish() {
+            isExamActive = false;
+            document.removeEventListener('visibilitychange', handleCheatingDetection);
+            window.removeEventListener('blur', handleCheatingDetection);
+            localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+            localStorage.removeItem('exam_deadline_timestamp');
+            localStorage.removeItem('active_subject_key');
+            document.getElementById('exam-workspace-screen').classList.add('hidden');
+            sendWhatsappNotification(`⚠️ ALERT: Completed exam layout submission manually for "${selectedSubjectTitle}".`);
+            showStrictLockoutScreen();
+        }
 
-        function handleTimeoutClose(reasonCode) {
+        function handleViolationLockout() {
             if (!isExamActive) return;
             isExamActive = false; 
-            clearInterval(activeTimer);
             document.removeEventListener('visibilitychange', handleCheatingDetection);
             window.removeEventListener('blur', handleCheatingDetection);
 
             document.getElementById('exam-workspace-screen').classList.add('hidden');
 
-            if (reasonCode === "SECURITY_BREACH_VIOLATION") {
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or tried screenshotting "${selectedSubjectTitle}"! Layout locked.`);
-                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-            } else {
-                localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Closed layout window "${selectedSubjectTitle}".`);
-            }
+            // Lockout set to local storage permanently, but deadline is NOT wiped so it keeps counting in the background
+            localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+            sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or screenshot attempted for "${selectedSubjectTitle}"! Screen locked.`);
+            
             showStrictLockoutScreen();
         }
 
@@ -364,6 +396,12 @@
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
+        }
+
+        function confirmPhotosSent() {
+            document.getElementById('lockout-screen').classList.add('hidden');
+            document.getElementById('restored-screen').classList.remove('hidden');
+            sendWhatsappNotification(`✅ UPDATE: Student confirmed sending calculation photos.`);
         }
     </script>
 </body>
