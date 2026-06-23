@@ -151,7 +151,7 @@
         </div>
          
         <div id="master-reset-container" style="margin-top: 30px;">
-            <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure connection verification cycle running... <span id="bg-live-countdown" style="color: var(--primary-yellow); font-weight: bold; margin-left: 5px;"></span></p>
+            <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure tracking active... <span id="bg-live-countdown" style="color: var(--primary-yellow); font-weight: bold; margin-left: 5px;"></span></p>
         </div>
     </div>
 
@@ -179,7 +179,7 @@
 
         let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
-        // HARD OVERRIDE OPERATIONS
+        // PRIVACY INPUT BLOCKERS
         document.addEventListener('contextmenu', event => event.preventDefault()); 
         document.addEventListener('selectstart', event => event.preventDefault()); 
         
@@ -225,10 +225,13 @@
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
             document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
 
-            // Recover tracking properties if page was abruptly reloaded during an active session
             currentSubjectKey = localStorage.getItem('active_subject_key') || "";
             if (currentSubjectKey) {
                 selectedSubjectTitle = localExamsData[currentSubjectKey].title;
+                // If a deadline timestamp is found, keep the exam active on page reload
+                if (localStorage.getItem('exam_deadline_timestamp')) {
+                    isExamActive = true;
+                }
             }
 
             runMainScreenEnforcement();
@@ -238,23 +241,23 @@
                 syncWithRemoteGistServer();
             }, 2000); 
 
-            // Initialize global high-precision absolute time clock cycle loop
+            // High priority clock cycle interval loop running every 1 second
             globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
         });
 
         function executeGlobalClockTick() {
-            // Performs sync loops simultaneously with clock checks
+            // Run server checking loops inside the execution frame
             syncWithRemoteGistServer();
 
             const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
             if (!deadlineStr || !currentSubjectKey) return;
 
             const targetDeadline = parseInt(deadlineStr);
-            const now = Date.now();
+            const now = Date.now(); // Reads directly from physical system clock hardware
             const remainingSeconds = Math.round((targetDeadline - now) / 1000);
 
             if (remainingSeconds <= 0) {
-                // Time explicitly finished completely inside background processing bounds
+                // Time has naturally completed inside absolute hardware tracking space
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
                 localStorage.removeItem('exam_deadline_timestamp');
                 localStorage.removeItem('active_subject_key');
@@ -268,7 +271,6 @@
                 let secs = remainingSeconds % 60;
                 let formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
                 
-                // Keep workspace view and lock screen text tracking elements updated in unison
                 document.getElementById('time-display').innerText = formattedTime;
                 document.getElementById('bg-live-countdown').innerText = `(${formattedTime} remaining)`;
             }
@@ -291,11 +293,17 @@
                 }
             } catch (e) {}
 
+            // CRITICAL TRACKING ENFORCEMENT
             if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
             } else if (checkFullScreenEnforcement()) {
+                // Only pull up dashboard if she hasn't activated an exam session
                 if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
+                } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
+                    // Restore active workspace view seamlessly if layout was cleared
+                    document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                    document.getElementById('lockout-screen').classList.add('hidden');
                 }
             }
         }
@@ -312,6 +320,7 @@
             if (!checkFullScreenEnforcement()) {
                 document.getElementById('screen-size-blocker').classList.remove('hidden');
                 document.getElementById('main-dashboard').classList.add('hidden');
+                document.getElementById('exam-workspace-screen').classList.add('hidden');
                 if (isExamActive) handleViolationLockout();
             } else {
                 document.getElementById('screen-size-blocker').classList.add('hidden');
@@ -323,7 +332,7 @@
 
         function sendWhatsappNotification(messageText) {
             try {
-                fetch(`https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
+                fetch://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
             } catch (e) {}
         }
 
@@ -342,7 +351,7 @@
             selectedSubjectTitle = exam.title; 
             isExamActive = true;
 
-            // Establish the ABSOLUTE target expiration marker in storage
+            // Generate an absolute termination timestamp based on system millisecond data
             const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
             localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
             localStorage.setItem('active_subject_key', subjectKey);
@@ -379,13 +388,8 @@
 
         function handleViolationLockout() {
             if (!isExamActive) return;
-            isExamActive = false; 
-            document.removeEventListener('visibilitychange', handleCheatingDetection);
-            window.removeEventListener('blur', handleCheatingDetection);
-
-            document.getElementById('exam-workspace-screen').classList.add('hidden');
-
-            // Lockout set to local storage permanently, but deadline is NOT wiped so it keeps counting in the background
+            
+            // Log violation status flag locally to keep interface blocked
             localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
             sendWhatsappNotification(`🚨 CHEAT ALERT: Left exam tab or screenshot attempted for "${selectedSubjectTitle}"! Screen locked.`);
             
@@ -396,12 +400,6 @@
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
-        }
-
-        function confirmPhotosSent() {
-            document.getElementById('lockout-screen').classList.add('hidden');
-            document.getElementById('restored-screen').classList.remove('hidden');
-            sendWhatsappNotification(`✅ UPDATE: Student confirmed sending calculation photos.`);
         }
     </script>
 </body>
