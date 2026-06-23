@@ -148,6 +148,10 @@
     </div>
 
     <script>
+        // ======================================================================
+        // 1. INSTRUCTOR GRADEBOOK CONFIGURATION
+        // EDIT THIS TEXT VALUE WHEN YOU FINISH MARKING HER WORK:
+        // ======================================================================
         const PUBLISHED_GRADES = {
             math: "WAIT FOR THE SCORE", 
             science: "NOT ATTEMPTED",
@@ -155,31 +159,32 @@
         };
 
         // ======================================================================
-        // EXAM STORAGE LINKS & TIMERS (UPDATED TO 50 MINUTES / 3000 SECONDS)
+        // 2. EXAM STORAGE LINKS & TIMERS (50 MINUTES / 3000 SECONDS)
+        // IMPORTANT: CHANGING THE "title" STRING AUTOMATICALLY UNLOCKS THE EXAM!
         // ======================================================================
         const localExamsData = {
             math: { 
-                title: "Mathematics Core Mock Exam Paper", 
-                durationSeconds: 3000, // <-- 3000 seconds = 50 Minutes
+                title: "Mathematics Core Mock Exam Paper v1", // Change this string to clear locks!
+                durationSeconds: 3000, 
                 isPdf: true, 
-                fileLink: "math-paper1.pdf" // MUST MATCH GITHUB FILENAME EXACTLY
+                fileLink: "math-paper1v.pdf" 
             },
             science: { 
-                title: "Science Core Practice Exam Paper", 
-                durationSeconds: 3000, // <-- 50 Minutes
+                title: "Science Core Practice Exam Paper v1", 
+                durationSeconds: 3000, 
                 isPdf: false, 
                 fileLink: "science-sheet.png" 
             },
             english: { 
-                title: "English Core Practice Exam Paper", 
-                durationSeconds: 3000, // <-- 50 Minutes
+                title: "English Core Practice Exam Paper v1", 
+                durationSeconds: 3000, 
                 isPdf: true, 
                 fileLink: "english-paper.pdf" 
             }
         };
 
         const WHATSAPP_PHONE = "+255764519027"; 
-        const CALLMEBOT_API_KEY = "999999"; 
+        const CALLMEBOT_API_KEY = "999999"; // Replace with your personal CallMeBot Key
 
         let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
@@ -199,13 +204,21 @@
         }
 
         function loadLocalExam(subjectKey) {
+            const exam = localExamsData[subjectKey];
+            if (!exam) return;
+
+            // SMART AUTO-RESET LOGIC
+            const savedTitle = localStorage.getItem(`title_${subjectKey}`);
+            if (savedTitle !== exam.title) {
+                localStorage.removeItem(`status_${subjectKey}`);
+                localStorage.setItem(`title_${subjectKey}`, exam.title);
+            }
+
+            // Strict block condition checking
             if(localStorage.getItem(`status_${subjectKey}`) === 'cheated' || localStorage.getItem(`status_${subjectKey}`) === 'locked') {
                 showStrictLockoutScreen(localStorage.getItem(`status_${subjectKey}`));
                 return;
             }
-
-            const exam = localExamsData[subjectKey];
-            if (!exam) return;
             
             currentSubjectKey = subjectKey;
             selectedSubjectTitle = exam.title; 
@@ -258,11 +271,11 @@
 
             if (reasonCode === "SECURITY_BREACH_VIOLATION") {
                 localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Student minimized or left the exam page for "${selectedSubjectTitle}"! The exam was forced closed immediately.`);
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Student left or minimized the exam page for "${selectedSubjectTitle}"! Access blocked permanently.`);
                 showStrictLockoutScreen("cheated");
             } else {
                 localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" closed normally. Reason: [${reasonCode}]. Student is taking photos.`);
+                sendWhatsappNotification(`⚠️ ALERT: Exam "${selectedSubjectTitle}" finished normally. Reason: [${reasonCode}]. Student is taking photos.`);
                 
                 document.getElementById('exam-workspace-screen').classList.add('hidden');
                 document.getElementById('lockout-screen').classList.remove('hidden');
