@@ -57,7 +57,6 @@
 
         /* EXAM INTERFACE */
         .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; position: relative; }
-        .timer { font-size: 1.25rem; font-weight: bold; color: var(--pure-white); background: var(--danger-red); padding: 6px 14px; border-radius: 6px; float: right; }
         .file-display-container { width: 100%; margin: 20px 0; background: var(--card-gray); padding: 10px; border: 2px solid #e5e7eb; box-sizing: border-box; }
 
         /* SCREENS */
@@ -74,7 +73,7 @@
         .status-badge { font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; }
 
         /* UNLOCK INPUT BOX */
-        .unlock-input { background: #222; border: 2px solid var(--primary-yellow); color: white; font-size: 1.5rem; text-align: center; padding: 10px; border-radius: 6px; width: 200px; margin-top: 15px; letter-spacing: 4px; }
+        .unlock-input { background: #222; border: 2px solid var(--primary-yellow); color: white; font-size: 1.5rem; text-align: center; padding: 10px; border-radius: 6px; width: 200px; margin-top: 15px; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -144,7 +143,6 @@
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
@@ -155,7 +153,7 @@
     <div id="lockout-screen" class="warning-screen hidden">
         <h1 id="lockout-headline" style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">EXAM CLOSED & LOCKED</h1>
         <p id="lockout-paragraph" style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
-            Time has expired or an unauthorized window tab shift occurred.<br>
+            An unauthorized window tab shift occurred.<br>
             <strong>Your access to the exam paper has been terminated.</strong>
         </p>
         
@@ -171,7 +169,7 @@
 
         <div id="admin-bypass-area" style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; width: 100%; max-width: 400px;">
             <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Teacher Override Code:</p>
-            <input type="password" id="override-pass-input" placeholder="••••" class="unlock-input">
+            <input type="text" id="override-pass-input" placeholder="Enter ADMIN" class="unlock-input">
             <br>
             <button onclick="attemptAdminOverride()" class="action-btn" style="background: #334155; color: white; font-size: 0.9rem; padding: 8px 20px;">Verify Password</button>
         </div>
@@ -188,8 +186,8 @@
     </div>
 
     <script>
-        // CONFIGURATION: Master Override Password
-        const TEACHER_MASTER_PASSWORD = "1234";
+        // CONFIGURATION: Updated Master Override Password
+        const TEACHER_MASTER_PASSWORD = "ADMIN";
 
         const PUBLISHED_GRADES = {
             math: "WAIT FOR THE SCORE", 
@@ -200,19 +198,16 @@
         const localExamsData = {
             math_live: { 
                 title: "Mathematics Core Mock Exam Paper v1", 
-                durationSeconds: 4500, 
                 isPdf: true, 
                 fileLink: "math-paper1q.pdf" 
             },
             science_live: { 
                 title: "Science Core Practice Exam Paper v1", 
-                durationSeconds: 4500, 
                 isPdf: false, 
                 fileLink: "science-sheet.png" 
             },
             english_live: { 
                 title: "English Core Practice Exam Paper v1", 
-                durationSeconds: 4500, 
                 isPdf: true, 
                 fileLink: "english-paper.pdf" 
             }
@@ -220,7 +215,7 @@
 
         const DIRECT_TEACHER_PHONE = "255764519027"; 
 
-        let activeTimer, timeLeft, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
+        let isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "";
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
@@ -249,7 +244,6 @@
                     let label = "ATTEMPTED";
                     
                     if (status === "cheated") { color = "red"; label = "SECURITY LOCKOUT"; }
-                    else if (status === "locked") { color = "purple"; label = "TIME EXPIRED"; }
                     else if (status === "completed") { color = "green"; label = "SUBMITTED"; }
 
                     historyHTML += `
@@ -302,7 +296,7 @@
             }
 
             const currentStatus = localStorage.getItem(`status_${subjectKey}`);
-            if(currentStatus === 'cheated' || currentStatus === 'locked') {
+            if(currentStatus === 'cheated') {
                 showStrictLockoutScreen(currentStatus);
                 return;
             }
@@ -322,7 +316,6 @@
             const exam = localExamsData[subjectKey];
             currentSubjectKey = subjectKey;
             selectedSubjectTitle = exam.title; 
-            timeLeft = exam.durationSeconds; 
             isExamActive = true;
 
             if (!localStorage.getItem(`status_${subjectKey}`)) {
@@ -339,18 +332,6 @@
             } else {
                 injectionBox.innerHTML = `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
             }
-
-            let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-            document.getElementById('time-display').innerText = `${m}:${s.toString().padStart(2, '0')}`;
-
-            activeTimer = setInterval(() => {
-                if(timeLeft <= 0) { handleTimeoutClose("TIMEOUT_EXPIRED"); } 
-                else {
-                    timeLeft--;
-                    let mins = Math.floor(timeLeft / 60), secs = timeLeft % 60;
-                    document.getElementById('time-display').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
 
             setTimeout(() => {
                 document.addEventListener('visibilitychange', handleCheatingDetection);
@@ -369,7 +350,6 @@
         function handleTimeoutClose(reasonCode) {
             if (!isExamActive) return;
             isExamActive = false; 
-            clearInterval(activeTimer);
             
             document.removeEventListener('visibilitychange', handleCheatingDetection);
             window.removeEventListener('blur', handleCheatingDetection);
@@ -385,12 +365,8 @@
                 const hackNotification = `🚨 SECURITY ALERT: I left or minimized my active exam screen for "${selectedSubjectTitle}". Access blocked permanently.`;
                 window.open(`https://wa.me/${DIRECT_TEACHER_PHONE}?text=${encodeURIComponent(hackNotification)}`, '_blank');
                 showStrictLockoutScreen("cheated");
-            } else if (reasonCode === "MANUAL_COMPLETION") {
-                localStorage.setItem(`status_${currentSubjectKey}`, "completed");
-                document.getElementById('exam-workspace-screen').classList.add('hidden');
-                document.getElementById('lockout-screen').classList.remove('hidden');
             } else {
-                localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+                localStorage.setItem(`status_${currentSubjectKey}`, "completed");
                 document.getElementById('exam-workspace-screen').classList.add('hidden');
                 document.getElementById('lockout-screen').classList.remove('hidden');
             }
