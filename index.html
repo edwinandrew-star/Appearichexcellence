@@ -147,6 +147,7 @@
                 <li>Take another phone right now.</li>
                 <li>Snap clear photos of your handwritten calculations.</li>
                 <li>Send all photos to your teacher's phone directly.</li>
+                <li>WhatsApp: +255 764 519 027</li>
             </ol>
         </div>
          
@@ -179,20 +180,24 @@
 
         let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
+        // Disables right click context menu (does not lock the exam)
         document.addEventListener('contextmenu', event => event.preventDefault()); 
+        // Disables selection triggers (does not lock the exam)
         document.addEventListener('selectstart', event => event.preventDefault()); 
         
         document.addEventListener('keydown', (e) => {
+            // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools Controls)
             if (e.keyCode === 123 || 
                 (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
-                (e.ctrlKey && e.keyCode === 85) ||
-                (e.ctrlKey && e.keyCode === 83) ||
-                (e.altKey && e.keyCode === 9)) { 
+                (e.ctrlKey && e.keyCode === 85) || // View Source
+                (e.ctrlKey && e.keyCode === 83) || // Save As
+                (e.altKey && e.keyCode === 9)) {   // Alt + Tab Switcher
                 e.preventDefault();
                 if (isExamActive && !isBypassingLockChecks) handleViolationLockout();
                 return false;
             }
 
+            // PrintScreen monitoring
             if (e.key === "PrintScreen" || e.keyCode === 44) {
                 e.preventDefault();
                 navigator.clipboard.writeText("Screenshot Blocked.");
@@ -212,7 +217,6 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 calculateTimeRemaining();
-                // Delay 3 seconds on wake so hardware Wi-Fi registers cleanly before making the network fetch
                 setTimeout(() => {
                     syncWithRemoteGistServer();
                 }, 3000);
@@ -290,7 +294,7 @@
         }
 
         async function syncWithRemoteGistServer() {
-            if (!navigator.onLine) return; // Drop execution if the network card is offline to prevent JS crashing
+            if (!navigator.onLine) return;
 
             try {
                 const forcingCounter = Date.now();
