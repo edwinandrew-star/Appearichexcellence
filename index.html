@@ -127,7 +127,7 @@
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">1:00</span></span>
+            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
@@ -166,11 +166,12 @@
     </div>
 
     <script>
-        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
+        // FIXED URL TYPO (.Json to .json)
+        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         const localExamsData = {
-            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 60, isPdf: true, fileLink: "math-paper1p.pdf" },
+            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math-paper1p.pdf" },
             science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
             english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
         };
@@ -180,23 +181,21 @@
 
         let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
-        // ACCIDENTAL SELECTION / RIGHT-CLICK PROTECTION (Safe: Blocks actions, doesn't lock user out)
+        // SELECTION / RIGHT-CLICK PROTECTION (Safe: Blocks context menu, doesn't lock out layout)
         document.addEventListener('contextmenu', event => event.preventDefault()); 
         document.addEventListener('selectstart', event => event.preventDefault()); 
         
         document.addEventListener('keydown', (e) => {
-            // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools Controls)
             if (e.keyCode === 123 || 
                 (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
-                (e.ctrlKey && e.keyCode === 85) || // View Source
-                (e.ctrlKey && e.keyCode === 83) || // Save As
-                (e.altKey && e.keyCode === 9)) {   // Alt + Tab Switcher
+                (e.ctrlKey && e.keyCode === 85) || 
+                (e.ctrlKey && e.keyCode === 83) || 
+                (e.altKey && e.keyCode === 9)) {   
                 e.preventDefault();
                 if (isExamActive && !isBypassingLockChecks) handleViolationLockout();
                 return false;
             }
 
-            // PrintScreen monitoring
             if (e.key === "PrintScreen" || e.keyCode === 44) {
                 e.preventDefault();
                 navigator.clipboard.writeText("Screenshot Blocked.");
@@ -212,7 +211,6 @@
 
         window.addEventListener('resize', runMainScreenEnforcement);
 
-        // SECURE NETWORKING & TAB FOCUS MONITOR
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 calculateTimeRemaining();
@@ -252,8 +250,12 @@
 
             runMainScreenEnforcement();
 
+            // FAIL-SAFE SPLASH HIDER: Guarantees splash screen drops after 2 seconds regardless of network bugs
             setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('hidden');
+                const splash = document.getElementById('splash-screen');
+                if (splash && !splash.classList.contains('hidden')) {
+                    splash.classList.add('hidden');
+                }
                 syncWithRemoteGistServer();
             }, 2000); 
 
@@ -265,7 +267,6 @@
             syncWithRemoteGistServer();
         }
 
-        // FIXED CRITICAL TIMEOUT ENFORCEMENT ENGINE
         function calculateTimeRemaining() {
             const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
             
@@ -292,7 +293,6 @@
             }
         }
 
-        // Dedicated helper function to cleanly secure lock and cut race-conditions
         function forceSystemTimeoutLock() {
             localStorage.setItem(`status_${currentSubjectKey}`, "locked");
             localStorage.removeItem('exam_deadline_timestamp');
@@ -331,4 +331,125 @@
                         isExamActive = true; 
                         const exam = localExamsData[currentSubjectKey];
                         document.getElementById('exam-title-header').innerText = exam.title;
-                        let injection
+                        let injectionBox = document.getElementById('questions-injection-box');
+                        if(injectionBox.innerHTML === "") {
+                            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
+                        }
+                        
+                        document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                        document.getElementById('main-dashboard').classList.add('hidden');
+                    } else {
+                        isExamActive = false;
+                        document.getElementById('main-dashboard').classList.remove('hidden');
+                        document.getElementById('exam-workspace-screen').classList.add('hidden');
+                    }
+
+                    setTimeout(() => { isBypassingLockChecks = false; }, 4000);
+                    return;
+                }
+            } catch (e) {}
+
+            if (checkGlobalPermanentLockStatus()) {
+                showStrictLockoutScreen();
+            } else if (checkFullScreenEnforcement()) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
+                    document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                    document.getElementById('lockout-screen').classList.add('hidden');
+                }
+            }
+        }
+
+        function checkFullScreenEnforcement() {
+            return (window.outerWidth >= (window.screen.width * 0.95) && window.outerHeight >= (window.screen.height * 0.90));
+        }
+
+        function runMainScreenEnforcement() {
+            if (isBypassingLockChecks) return;
+            
+            if (checkGlobalPermanentLockStatus()) {
+                showStrictLockoutScreen();
+                return;
+            }
+            
+            if (!checkFullScreenEnforcement()) {
+                if (isExamActive) {
+                    handleViolationLockout();
+                } else {
+                    document.getElementById('screen-size-blocker').classList.remove('hidden');
+                    document.getElementById('main-dashboard').classList.add('hidden');
+                    document.getElementById('exam-workspace-screen').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('screen-size-blocker').classList.add('hidden');
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                }
+            }
+        }
+
+        function sendWhatsappNotification(messageText) {
+            try {
+                fetch(`https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
+            } catch (e) {}
+        }
+
+        function loadLocalExam(subjectKey) {
+            currentSubjectKey = subjectKey;
+            if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen(); return; }
+            
+            if (!checkFullScreenEnforcement()) { 
+                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Started exam in split or small layout screen for "${localExamsData[subjectKey].title}"! Screen locked.`);
+                showStrictLockoutScreen();
+                return; 
+            }
+
+            const exam = localExamsData[subjectKey];
+            if (!exam) return;
+
+            selectedSubjectTitle = exam.title; 
+            
+            if (!localStorage.getItem('exam_deadline_timestamp')) {
+                const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
+                localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
+            }
+            localStorage.setItem('active_subject_key', subjectKey);
+            isExamActive = true;
+
+            sendWhatsappNotification(`📢 ALERT: Student started "${selectedSubjectTitle}".`);
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('exam-workspace-screen').classList.remove('hidden');
+            document.getElementById('exam-title-header').innerText = exam.title;
+
+            let injectionBox = document.getElementById('questions-injection-box');
+            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
+        }
+        
+        function triggerManualFinish() {
+            isExamActive = false;
+            localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+            localStorage.removeItem('exam_deadline_timestamp');
+            localStorage.removeItem('active_subject_key');
+            document.getElementById('exam-workspace-screen').classList.add('hidden');
+            sendWhatsappNotification(`⚠️ ALERT: Completed exam layout submission manually for "${selectedSubjectTitle}".`);
+            showStrictLockoutScreen();
+        }
+
+        function handleViolationLockout() {
+            if (!isExamActive || isBypassingLockChecks) return;
+            isExamActive = false; 
+            localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or computer turned to sleep during "${selectedSubjectTitle}"! Screen locked.`);
+            showStrictLockoutScreen();
+        }
+
+        function showStrictLockoutScreen() {
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('exam-workspace-screen').classList.add('hidden');
+            document.getElementById('lockout-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
