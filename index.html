@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appearich Portal [75-Min Mode]</title>
+    <title>Appearich Portal</title>
     <style>
         :root {
             --primary-yellow: #facc15; 
@@ -61,13 +61,12 @@
 
         .score-board { background: #1e293b; padding: 25px; border-radius: 8px; border: 2px solid var(--primary-yellow); margin-top: 20px; width: 100%; max-width: 500px; text-align: left; }
         .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
+        
+        /* Error diagnostic box styles */
         .error-diagnostic-box { background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 15px; border-radius: 6px; margin-top: 15px; text-align: left; font-family: monospace; }
     </style>
 </head>
 <body>
-
-    <!-- Clears previous test limits to force reload the 75 mins cleanly -->
-    <script>localStorage.clear();</script>
 
     <div id="screen-size-blocker" class="warning-screen hidden" style="background: #111827;">
         <span style="font-size: 5rem; margin-bottom: 20px;">🖥️</span>
@@ -81,7 +80,7 @@
     <div id="splash-screen">
         <div>
             <div class="logo-main-text">Appearich</div>
-            <div class="logo-sub-text">Official Examination Portal</div>
+            <div class="logo-sub-text">The Next Chapter</div>
         </div>
     </div>
 
@@ -100,21 +99,21 @@
             </div>
         </div>
 
-        <h2 class="section-title">Available Assessments (75 Min Limit)</h2>
+        <h2 class="section-title">Available Assessments</h2>
         <div class="papers-grid">
             <div class="paper-card">
                 <h3>Mathematics</h3>
-                <p>Official Mathematics Paper 1 Core Examination.</p>
+                <p>Open the Mathematics secure digital test view layout window.</p>
                 <button onclick="loadLocalExam('math')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>Science</h3>
-                <p>Run a 75-minute evaluation using a sample graphics image.</p>
+                <p>Open the Science secure digital test view layout window.</p>
                 <button onclick="loadLocalExam('science')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>English</h3>
-                <p>Run a 75-minute evaluation using an academic sample PDF document.</p>
+                <p>Open the English secure digital test view layout window.</p>
                 <button onclick="loadLocalExam('english')">Attempt Paper</button>
             </div>
         </div>
@@ -122,7 +121,7 @@
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
+            <span class="timer">Time Left: <span id="time-display">2:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
@@ -150,14 +149,23 @@
         </div>
     </div>
 
+    <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
+        <span style="font-size: 4rem;">⏳</span>
+        <h1 style="color:var(--primary-yellow); font-size:2.8rem; margin:10px 0;">WAIT FOR THE SCORE</h1>
+        <p style="max-width:600px; font-size:1.2rem; color:#cbd5e1; line-height:1.6;">
+            Your handwritten photo solutions have been logged.<br> 
+            Please wait for your instructor to finish marking your papers manually.
+        </p>
+    </div>
+
     <script>
         const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         
-        // ⏱️ Updated duration to 4500 seconds (75 minutes) & injected "math-paper1-.pdf"
+        // 💡 VERIFY THESE URLS / FILENAMES! If your math file is locally stored, ensure it sits right next to index.html
         const localExamsData = {
-            math: { title: "Mathematics Paper 1 Core Exam", durationSeconds: 4500, isPdf: true, fileLink: "math-paper1p.pdf" },
+            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 120, isPdf: true, fileLink: "math_paper1p.pdf" },
             science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
             english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
         };
@@ -282,13 +290,21 @@
 
         function injectExamFileLayout(exam) {
             let injectionBox = document.getElementById('questions-injection-box');
+            
+            // Build absolute path checking to help pinpoint file locations cleanly
             let targetSource = exam.fileLink;
+            if (!targetSource.startsWith('http://') && !targetSource.startsWith('https://')) {
+                // If local path, construct fallback visualization
+                let baseRoot = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+                targetSource = baseRoot + exam.fileLink;
+            }
 
             if (exam.isPdf) {
                 injectionBox.innerHTML = `
                     <iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>
                     <div class="error-diagnostic-box">
-                        <strong>🛠️ Path Monitor:</strong> Streaming local asset document target: <a href="${targetSource}" target="_blank" style="color:#b91c1c; font-weight:bold;">${targetSource}</a>
+                        <strong>🛠️ Path Monitor:</strong> If your document fails to appear inside the container wrapper above, ensure that the file named <strong>"${exam.fileLink}"</strong> is placed inside the exact same folder layout directory as this index.html script file.<br>
+                        <strong>Target Path:</strong> <a href="${targetSource}" target="_blank" style="color:#b91c1c; font-weight:bold;">${targetSource}</a>
                     </div>`;
             } else {
                 injectionBox.innerHTML = `
@@ -319,6 +335,7 @@
                     }
                     
                     document.getElementById('lockout-screen').classList.add('hidden');
+                    document.getElementById('restored-screen').classList.add('hidden');
                     document.getElementById('screen-size-blocker').classList.add('hidden');
                     
                     const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
@@ -349,7 +366,7 @@
             if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
             } else if (checkFullScreenEnforcement()) {
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
                     document.getElementById('exam-workspace-screen').classList.remove('hidden');
@@ -380,7 +397,7 @@
                 }
             } else {
                 document.getElementById('screen-size-blocker').classList.add('hidden');
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 }
             }
