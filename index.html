@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appearich Portal [3-Min Test Mode]</title>
+    <title>Appearich Portal [75-Min Mode]</title>
     <style>
         :root {
             --primary-yellow: #facc15; 
@@ -66,6 +66,7 @@
 </head>
 <body>
 
+    <!-- Clears previous test limits to force reload the 75 mins cleanly -->
     <script>localStorage.clear();</script>
 
     <div id="screen-size-blocker" class="warning-screen hidden" style="background: #111827;">
@@ -80,7 +81,7 @@
     <div id="splash-screen">
         <div>
             <div class="logo-main-text">Appearich</div>
-            <div class="logo-sub-text">3-Minute Test Sandbox</div>
+            <div class="logo-sub-text">Official Examination Portal</div>
         </div>
     </div>
 
@@ -99,21 +100,21 @@
             </div>
         </div>
 
-        <h2 class="section-title">Available Assessments (3 Min Limit)</h2>
+        <h2 class="section-title">Available Assessments (75 Min Limit)</h2>
         <div class="papers-grid">
             <div class="paper-card">
                 <h3>Mathematics</h3>
-                <p>Run a 3-minute evaluation using a public PDF web resource stream.</p>
+                <p>Official Mathematics Paper 1 Core Examination.</p>
                 <button onclick="loadLocalExam('math')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>Science</h3>
-                <p>Run a 3-minute evaluation using a sample graphics image.</p>
+                <p>Run a 75-minute evaluation using a sample graphics image.</p>
                 <button onclick="loadLocalExam('science')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>English</h3>
-                <p>Run a 3-minute evaluation using an academic sample PDF document.</p>
+                <p>Run a 75-minute evaluation using an academic sample PDF document.</p>
                 <button onclick="loadLocalExam('english')">Attempt Paper</button>
             </div>
         </div>
@@ -121,7 +122,7 @@
 
     <div id="exam-workspace-screen" class="app-container hidden">
         <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">03:00</span></span>
+            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
             <h2 id="exam-title-header">Exam Paper</h2>
             <hr style="border-color:#e5e7eb;">
             <div id="questions-injection-box" class="file-display-container"></div>
@@ -154,10 +155,11 @@
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         
+        // ⏱️ Updated duration to 4500 seconds (75 minutes) & injected "math-paper1-.pdf"
         const localExamsData = {
-            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 180, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" },
-            science: { title: "Science Core Practice Exam Paper", durationSeconds: 180, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
-            english: { title: "English Core Practice Exam Paper", durationSeconds: 180, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
+            math: { title: "Mathematics Paper 1 Core Exam", durationSeconds: 4500, isPdf: true, fileLink: "math-paper1p.pdf" },
+            science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
+            english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
         };
 
         const WHATSAPP_PHONE = "+255764519027"; 
@@ -286,7 +288,7 @@
                 injectionBox.innerHTML = `
                     <iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>
                     <div class="error-diagnostic-box">
-                        <strong>🛠️ Sandbox Path Monitor:</strong> Testing external asset stream layout from: <a href="${targetSource}" target="_blank" style="color:#b91c1c; font-weight:bold;">${targetSource}</a>
+                        <strong>🛠️ Path Monitor:</strong> Streaming local asset document target: <a href="${targetSource}" target="_blank" style="color:#b91c1c; font-weight:bold;">${targetSource}</a>
                     </div>`;
             } else {
                 injectionBox.innerHTML = `
