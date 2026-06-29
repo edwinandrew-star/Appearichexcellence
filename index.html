@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -62,8 +61,6 @@
 
         .score-board { background: #1e293b; padding: 25px; border-radius: 8px; border: 2px solid var(--primary-yellow); margin-top: 20px; width: 100%; max-width: 500px; text-align: left; }
         .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
-        
-        /* Error diagnostic box styles */
         .error-diagnostic-box { background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 15px; border-radius: 6px; margin-top: 15px; text-align: left; font-family: monospace; }
     </style>
 </head>
@@ -164,7 +161,6 @@
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         
-        // 💡 VERIFY THESE URLS / FILENAMES! If your math file is locally stored, ensure it sits right next to index.html
         const localExamsData = {
             math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math-paper1p.pdf" },
             science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
@@ -174,7 +170,7 @@
         const WHATSAPP_PHONE = "+255764519027"; 
         const CALLMEBOT_API_KEY = "999999"; 
 
-        let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
+        let clockInterval, networkInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
         document.addEventListener('contextmenu', event => {
             event.preventDefault();
@@ -217,7 +213,7 @@
                 calculateTimeRemaining();
                 setTimeout(() => {
                     syncWithRemoteGistServer();
-                }, 3000);
+                }, 1500);
             } else {
                 if (isExamActive && !isBypassingLockChecks) {
                     handleViolationLockout();
@@ -256,13 +252,12 @@
                 syncWithRemoteGistServer();
             }, 2000); 
 
-            globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
+            // 🕒 Keep the countdown ticking smooth every 1 second
+            clockInterval = setInterval(calculateTimeRemaining, 1000);
+            
+            // 🌐 Check network status updates every 5 seconds to stop UI screen flashing
+            networkInterval = setInterval(syncWithRemoteGistServer, 5000);
         });
-
-        function executeGlobalClockTick() {
-            calculateTimeRemaining();
-            syncWithRemoteGistServer();
-        }
 
         function calculateTimeRemaining() {
             const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
@@ -291,11 +286,8 @@
 
         function injectExamFileLayout(exam) {
             let injectionBox = document.getElementById('questions-injection-box');
-            
-            // Build absolute path checking to help pinpoint file locations cleanly
             let targetSource = exam.fileLink;
             if (!targetSource.startsWith('http://') && !targetSource.startsWith('https://')) {
-                // If local path, construct fallback visualization
                 let baseRoot = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
                 targetSource = baseRoot + exam.fileLink;
             }
