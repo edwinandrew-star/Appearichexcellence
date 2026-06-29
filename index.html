@@ -15,15 +15,6 @@
             --card-gray: #f9fafb;
         }
 
-        /* STRICT ANTI-COPY CONTROL PLUGINS */
-        * {
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-            -webkit-user-drag: none !important;
-        }
-
         @media print {
             body { display: none !important; }
         }
@@ -59,7 +50,6 @@
         @media (max-width: 768px) { .papers-grid { grid-template-columns: 1fr; } }
         .paper-card { background: var(--card-gray); border-radius: 10px; border: 2px solid #e5e7eb; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
         .paper-card button { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .paper-card button:disabled { background: #6b7280; color: #9ca3af; cursor: not-allowed; }
 
         .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; position: relative; }
         .timer { font-size: 1.25rem; font-weight: bold; color: var(--pure-white); background: var(--danger-red); padding: 6px 14px; border-radius: 6px; float: right; }
@@ -103,7 +93,6 @@
                 <div class="score-row" style="font-weight: bold; color: var(--primary-yellow);"><span>Subject Name</span> <span>Achieved Grade</span></div>
                 <div class="score-row" style="color: #cbd5e1;"><span>Mathematics Core Paper</span> <span id="grade-math-box">PENDING</span></div>
                 <div class="score-row" style="color: #cbd5e1;"><span>Science Core Paper</span> <span id="grade-science-box">NOT ATTEMPTED</span></div>
-                <div class="score-row" style="color: #cbd5e1;"><span>English Core Paper</span> <span id="grade-english-box">NOT ATTEMPTED</span></div>
             </div>
         </div>
 
@@ -112,17 +101,17 @@
             <div class="paper-card">
                 <h3>Mathematics</h3>
                 <p>Open the Mathematics secure digital test view layout window.</p>
-                <button id="btn-math" onclick="loadLocalExam('math')">Attempt Paper</button>
+                <button onclick="loadLocalExam('math')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>Science</h3>
                 <p>Open the Science secure digital test view layout window.</p>
-                <button id="btn-science" onclick="loadLocalExam('science')">Attempt Paper</button>
+                <button onclick="loadLocalExam('science')">Attempt Paper</button>
             </div>
             <div class="paper-card">
                 <h3>English</h3>
                 <p>Open the English secure digital test view layout window.</p>
-                <button id="btn-english" onclick="loadLocalExam('english')">Attempt Paper</button>
+                <button onclick="loadLocalExam('english')">Attempt Paper</button>
             </div>
         </div>
     </div>
@@ -140,8 +129,8 @@
     <div id="lockout-screen" class="warning-screen hidden">
         <h1 id="lockout-headline" style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">🔴 ACCESS DENIED</h1>
         <p id="lockout-paragraph" style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
-            This exam layout has been locked because exam constraints or security parameters were violated.<br>
-            <strong>Your attempt for this subject is locked.</strong>
+            This exam layout is locked or has run out of time allocation.<br>
+            <strong>System locked out. Please contact your instructor to verify your session status.</strong>
         </p>
         <div id="instruction-box" style="background:#111827; padding:20px; border-radius:8px; border:2px dashed var(--danger-red); margin-top:20px; max-width:500px;">
             <p style="margin:0; font-weight:bold; color:white;">👉 INSTRUCTIONS FOR CANDIDATE:</p>
@@ -149,23 +138,29 @@
                 <li>Take another phone right now.</li>
                 <li>Snap clear photos of your handwritten calculations.</li>
                 <li>Send all photos to your teacher's phone directly.</li>
-                <li>WhatsApp: +255 764 519 027</li>
             </ol>
         </div>
          
-        <button class="action-btn" onclick="returnToDashboardAfterLockout()">Return to Dashboard</button>
-
         <div id="master-reset-container" style="margin-top: 30px;">
             <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure tracking active... <span id="bg-live-countdown" style="color: var(--primary-yellow); font-weight: bold; margin-left: 5px;"></span></p>
         </div>
     </div>
 
+    <div id="restored-screen" class="warning-screen hidden" style="background:#1e293b;">
+        <span style="font-size: 4rem;">⏳</span>
+        <h1 style="color:var(--primary-yellow); font-size:2.8rem; margin:10px 0;">WAIT FOR THE SCORE</h1>
+        <p style="max-width:600px; font-size:1.2rem; color:#cbd5e1; line-height:1.6;">
+            Your handwritten photo solutions have been logged.<br> 
+            Please wait for your instructor to finish marking your papers manually.
+        </p>
+    </div>
+
     <script>
-        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.json";
+        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
         const localExamsData = {
-            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math-paper1p.pdf" },
+            math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math_paper1p.pdf" },
             science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
             english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
         };
@@ -175,20 +170,29 @@
 
         let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
-        document.addEventListener('contextmenu', event => event.preventDefault()); 
-        document.addEventListener('selectstart', event => event.preventDefault()); 
+        // ACCIDENTAL TAP PROTECTION: Block Copy action and Context Menu but DO NOT trigger immediate lockouts
+        document.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            alert("🔒 Context menu, right-clicks, and custom option tabs are disabled on this workspace layout.");
+        }); 
         
+        document.addEventListener('copy', event => {
+            event.preventDefault();
+            alert("⚠️ Clipboard actions are protected. Copying contents out of this application is not allowed.");
+        });
+
         document.addEventListener('keydown', (e) => {
             if (e.keyCode === 123 || 
                 (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
-                (e.ctrlKey && e.keyCode === 85) || 
-                (e.ctrlKey && e.keyCode === 83) || 
-                (e.altKey && e.keyCode === 9)) {   
+                (e.ctrlKey && e.keyCode === 85) ||
+                (e.ctrlKey && e.keyCode === 83) ||
+                (e.altKey && e.keyCode === 9)) { 
                 e.preventDefault();
                 if (isExamActive && !isBypassingLockChecks) handleViolationLockout();
                 return false;
             }
 
+            // Lock on explicit manual screenshots
             if (e.key === "PrintScreen" || e.keyCode === 44) {
                 e.preventDefault();
                 navigator.clipboard.writeText("Screenshot Blocked.");
@@ -226,14 +230,12 @@
         function checkGlobalPermanentLockStatus() {
             if (!currentSubjectKey) return false;
             let status = localStorage.getItem(`status_${currentSubjectKey}`);
-            // Timeouts are handled as isolated locked buttons, cheating screens trigger full overlay layout lockout
-            return (status === 'cheated');
+            return (status === 'cheated' || status === 'locked' || status === 'expired');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
             document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
-            document.getElementById('grade-english-box').innerText = PUBLISHED_GRADES.english;
 
             currentSubjectKey = localStorage.getItem('active_subject_key') || "";
             if (currentSubjectKey) {
@@ -243,15 +245,12 @@
                 }
             }
 
-            updateDashboardButtonStates();
+            runMainScreenEnforcement();
 
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if (splash) splash.classList.add('hidden');
-                
-                runMainScreenEnforcement();
+                document.getElementById('splash-screen').classList.add('hidden');
                 syncWithRemoteGistServer();
-            }, 1500); 
+            }, 2000); 
 
             globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
         });
@@ -259,23 +258,6 @@
         function executeGlobalClockTick() {
             calculateTimeRemaining();
             syncWithRemoteGistServer();
-        }
-
-        function updateDashboardButtonStates() {
-            const subjects = ['math', 'science', 'english'];
-            subjects.forEach(sub => {
-                const btn = document.getElementById(`btn-${sub}`);
-                const status = localStorage.getItem(`status_${sub}`);
-                if (btn) {
-                    if (status === 'cheated' || status === 'locked' || status === 'expired_locked') {
-                        btn.disabled = true;
-                        btn.innerText = status === 'expired_locked' ? "TIME EXPIRED (LOCKED)" : "LOCKED / ATTEMPTED";
-                    } else {
-                        btn.disabled = false;
-                        btn.innerText = "Attempt Paper";
-                    }
-                }
-            });
         }
 
         function calculateTimeRemaining() {
@@ -287,39 +269,21 @@
             const remainingSeconds = Math.round((targetDeadline - now) / 1000);
 
             if (remainingSeconds <= 0) {
-                forceSystemTimeoutLock();
+                // Time runs out -> Lock completely into an expired state
+                localStorage.setItem(`status_${currentSubjectKey}`, "expired");
+                isExamActive = false;
+                
+                sendWhatsappNotification(`⏰ TIMEOUT: Exam time has expired for "${selectedSubjectTitle}". Workspace is now closed.`);
+                showStrictLockoutScreen();
+                document.getElementById('bg-live-countdown').innerText = "(Time Expired)";
             } else {
                 let mins = Math.floor(remainingSeconds / 60);
                 let secs = remainingSeconds % 60;
                 let formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
                 
                 document.getElementById('time-display').innerText = formattedTime;
+                document.getElementById('bg-live-countdown').innerText = `(${formattedTime} remaining)`;
             }
-        }
-
-        function forceSystemTimeoutLock() {
-            const completedSubject = currentSubjectKey;
-            
-            // Set isolated expiration state 
-            localStorage.setItem(`status_${completedSubject}`, "expired_locked");
-            localStorage.removeItem('exam_deadline_timestamp');
-            localStorage.removeItem('active_subject_key');
-            isExamActive = false;
-            currentSubjectKey = "";
-            
-            sendWhatsappNotification(`⏰ TIMEOUT: Exam time has expired for "${selectedSubjectTitle}". This specific subject is locked.`);
-            
-            // Redirect smoothly out of the workspace back to clean layout dashboard view
-            document.getElementById('exam-workspace-screen').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            
-            updateDashboardButtonStates();
-        }
-
-        function returnToDashboardAfterLockout() {
-            document.getElementById('lockout-screen').classList.add('hidden');
-            updateDashboardButtonStates();
-            runMainScreenEnforcement();
         }
 
         async function syncWithRemoteGistServer() {
@@ -331,19 +295,26 @@
                 if (!response) return; 
                 
                 const data = await response.json();
-                if (!data) return;
                 
+                // Only open the application if explicitly allowed by your Gist file
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
                     isBypassingLockChecks = true;
                     
                     const subjects = ['math', 'science', 'english'];
                     subjects.forEach(k => localStorage.removeItem(`status_${k}`));
+                    if (data.system_lock === "reset") {
+                        localStorage.removeItem('exam_deadline_timestamp');
+                        localStorage.removeItem('active_subject_key');
+                    }
                     
                     document.getElementById('lockout-screen').classList.add('hidden');
+                    document.getElementById('restored-screen').classList.add('hidden');
                     document.getElementById('screen-size-blocker').classList.add('hidden');
                     
                     const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
-                    if (hasDeadline && currentSubjectKey) {
+                    const expiredCheck = localStorage.getItem(`status_${currentSubjectKey}`) === 'expired';
+                    
+                    if (hasDeadline && !expiredCheck) {
                         isExamActive = true; 
                         const exam = localExamsData[currentSubjectKey];
                         document.getElementById('exam-title-header').innerText = exam.title;
@@ -360,16 +331,15 @@
                         document.getElementById('exam-workspace-screen').classList.add('hidden');
                     }
 
-                    updateDashboardButtonStates();
                     setTimeout(() => { isBypassingLockChecks = false; }, 4000);
                     return;
                 }
             } catch (e) {}
 
-            if (isExamActive && checkGlobalPermanentLockStatus()) {
+            if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
             } else if (checkFullScreenEnforcement()) {
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
                     document.getElementById('exam-workspace-screen').classList.remove('hidden');
@@ -385,7 +355,7 @@
         function runMainScreenEnforcement() {
             if (isBypassingLockChecks) return;
             
-            if (isExamActive && checkGlobalPermanentLockStatus()) {
+            if (checkGlobalPermanentLockStatus()) {
                 showStrictLockoutScreen();
                 return;
             }
@@ -400,7 +370,7 @@
                 }
             } else {
                 document.getElementById('screen-size-blocker').classList.add('hidden');
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden') && document.getElementById('restored-screen').classList.contains('hidden')) {
                     document.getElementById('main-dashboard').classList.remove('hidden');
                 }
             }
@@ -413,17 +383,8 @@
         }
 
         function loadLocalExam(subjectKey) {
-            if (localStorage.getItem(`status_${subjectKey}`) === 'cheated' || localStorage.getItem(`status_${subjectKey}`) === 'locked' || localStorage.getItem(`status_${subjectKey}`) === 'expired_locked') {
-                currentSubjectKey = subjectKey;
-                if (localStorage.getItem(`status_${subjectKey}`) === 'cheated') {
-                    showStrictLockoutScreen(); 
-                } else {
-                    alert("This subject assessment is locked and completed.");
-                }
-                return; 
-            }
-            
             currentSubjectKey = subjectKey;
+            if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen(); return; }
             
             if (!checkFullScreenEnforcement()) { 
                 localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
@@ -454,35 +415,24 @@
         }
         
         function triggerManualFinish() {
-            const completedSubject = currentSubjectKey;
             isExamActive = false;
-            localStorage.setItem(`status_${completedSubject}`, "locked");
+            localStorage.setItem(`status_${currentSubjectKey}`, "locked");
             localStorage.removeItem('exam_deadline_timestamp');
             localStorage.removeItem('active_subject_key');
-            currentSubjectKey = "";
-            
             document.getElementById('exam-workspace-screen').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
             sendWhatsappNotification(`⚠️ ALERT: Completed exam layout submission manually for "${selectedSubjectTitle}".`);
-            updateDashboardButtonStates();
+            showStrictLockoutScreen();
         }
 
         function handleViolationLockout() {
             if (!isExamActive || isBypassingLockChecks) return;
-            const flaggedSubject = currentSubjectKey;
             isExamActive = false; 
-            localStorage.setItem(`status_${flaggedSubject}`, "cheated");
-            localStorage.removeItem('exam_deadline_timestamp');
-            localStorage.removeItem('active_subject_key');
-            currentSubjectKey = "";
-
-            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or computer turned to sleep during "${selectedSubjectTitle}"! Subject locked.`);
-            updateDashboardButtonStates();
+            localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or computer turned to sleep during "${selectedSubjectTitle}"! Screen locked.`);
             showStrictLockoutScreen();
         }
 
         function showStrictLockoutScreen() {
-            document.getElementById('splash-screen').classList.add('hidden');
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('exam-workspace-screen').classList.add('hidden');
             document.getElementById('lockout-screen').classList.remove('hidden');
