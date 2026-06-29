@@ -61,6 +61,9 @@
 
         .score-board { background: #1e293b; padding: 25px; border-radius: 8px; border: 2px solid var(--primary-yellow); margin-top: 20px; width: 100%; max-width: 500px; text-align: left; }
         .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
+        
+        /* Error diagnostic box styles */
+        .error-diagnostic-box { background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 15px; border-radius: 6px; margin-top: 15px; text-align: left; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -159,6 +162,8 @@
         const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
 
         const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
+        
+        // 💡 VERIFY THESE URLS / FILENAMES! If your math file is locally stored, ensure it sits right next to index.html
         const localExamsData = {
             math: { title: "Mathematics Core Mock Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math_paper1p.pdf" },
             science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: false, fileLink: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solar_sys8.png" },
@@ -170,7 +175,6 @@
 
         let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
-        // ACCIDENTAL TAP PROTECTION: Block Copy action and Context Menu but DO NOT trigger immediate lockouts
         document.addEventListener('contextmenu', event => {
             event.preventDefault();
             alert("🔒 Context menu, right-clicks, and custom option tabs are disabled on this workspace layout.");
@@ -192,7 +196,6 @@
                 return false;
             }
 
-            // Lock on explicit manual screenshots
             if (e.key === "PrintScreen" || e.keyCode === 44) {
                 e.preventDefault();
                 navigator.clipboard.writeText("Screenshot Blocked.");
@@ -269,7 +272,6 @@
             const remainingSeconds = Math.round((targetDeadline - now) / 1000);
 
             if (remainingSeconds <= 0) {
-                // Time runs out -> Lock completely into an expired state
                 localStorage.setItem(`status_${currentSubjectKey}`, "expired");
                 isExamActive = false;
                 
@@ -286,6 +288,32 @@
             }
         }
 
+        function injectExamFileLayout(exam) {
+            let injectionBox = document.getElementById('questions-injection-box');
+            
+            // Build absolute path checking to help pinpoint file locations cleanly
+            let targetSource = exam.fileLink;
+            if (!targetSource.startsWith('http://') && !targetSource.startsWith('https://')) {
+                // If local path, construct fallback visualization
+                let baseRoot = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+                targetSource = baseRoot + exam.fileLink;
+            }
+
+            if (exam.isPdf) {
+                injectionBox.innerHTML = `
+                    <iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>
+                    <div class="error-diagnostic-box">
+                        <strong>🛠️ Path Monitor:</strong> If your document fails to appear inside the container wrapper above, ensure that the file named <strong>"${exam.fileLink}"</strong> is placed inside the exact same folder layout directory as this index.html script file.<br>
+                        <strong>Target Path:</strong> <a href="${targetSource}" target="_blank" style="color:#b91c1c; font-weight:bold;">${targetSource}</a>
+                    </div>`;
+            } else {
+                injectionBox.innerHTML = `
+                    <div style="text-align:center;">
+                        <img src="${exam.fileLink}" style="max-width:100%; height:auto;" onerror="this.parentElement.innerHTML+='<div class=error-diagnostic-box><strong>🔴 Error loading image file:</strong> Could not pull target asset from: ${exam.fileLink}</div>'" />
+                    </div>`;
+            }
+        }
+
         async function syncWithRemoteGistServer() {
             if (!navigator.onLine) return;
 
@@ -296,7 +324,6 @@
                 
                 const data = await response.json();
                 
-                // Only open the application if explicitly allowed by your Gist file
                 if (data.system_lock === "clear" || data.system_lock === "reset") {
                     isBypassingLockChecks = true;
                     
@@ -320,7 +347,7 @@
                         document.getElementById('exam-title-header').innerText = exam.title;
                         let injectionBox = document.getElementById('questions-injection-box');
                         if(injectionBox.innerHTML === "") {
-                            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
+                            injectExamFileLayout(exam);
                         }
                         
                         document.getElementById('exam-workspace-screen').classList.remove('hidden');
@@ -410,8 +437,7 @@
             document.getElementById('exam-workspace-screen').classList.remove('hidden');
             document.getElementById('exam-title-header').innerText = exam.title;
 
-            let injectionBox = document.getElementById('questions-injection-box');
-            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
+            injectExamFileLayout(exam);
         }
         
         function triggerManualFinish() {
