@@ -1,431 +1,432 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appearich Portal</title>
-    <style>
-        :root {
-            --primary-yellow: #facc15; 
-            --bg-black: #000000;       
-            --dark-charcoal: #111827; 
-            --pure-white: #ffffff;     
-            --danger-red: #dc2626;
-            --success-green: #15803d;
-            --card-gray: #f9fafb;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appearich Portal</title>
+    <style>
+        :root {
+            --primary-yellow: #facc15; 
+            --bg-black: #000000;       
+            --dark-charcoal: #111827; 
+            --pure-white: #ffffff;     
+            --danger-red: #dc2626;
+            --success-green: #15803d;
+            --card-gray: #f9fafb;
+        }
 
-        /* STRICT ANTI-COPY CONTROL PLUGINS */
-        * {
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-            -webkit-user-drag: none !important;
-        }
+        /* STRICT ANTI-COPY CONTROL PLUGINS */
+        * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-user-drag: none !important;
+        }
 
-        @media print {
-            body { display: none !important; }
-        }
+        @media print {
+            body { display: none !important; }
+        }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--pure-white);
-            color: var(--dark-charcoal);
-            margin: 0; padding: 0; min-height: 100vh;
-        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--pure-white);
+            color: var(--dark-charcoal);
+            margin: 0; padding: 0; min-height: 100vh;
+        }
 
-        .hidden { display: none !important; }
-        .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hidden { display: none !important; }
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-black); display: flex; justify-content: center; align-items: center; z-index: 9999;
-        }
-        .logo-main-text { font-size: 4.5rem; font-weight: 900; color: var(--pure-white); letter-spacing: 4px; }
-        .logo-sub-text { color: var(--primary-yellow); font-size: 1.6rem; letter-spacing: 3px; font-weight: 600; text-align: center;}
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-black); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .logo-main-text { font-size: 4.5rem; font-weight: 900; color: var(--pure-white); letter-spacing: 4px; }
+        .logo-sub-text { color: var(--primary-yellow); font-size: 1.6rem; letter-spacing: 3px; font-weight: 600; text-align: center;}
 
-        .hero-banner-full {
-            width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
-            height: 260px; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('images/banner.jpg');
-            background-size: cover; background-position: center; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; color: var(--pure-white); text-align: center;
-            margin-bottom: 45px; border-bottom: 6px solid var(--primary-yellow);
-        }
-        .hero-banner-full h1 { margin: 0; font-size: 3.5rem; color: var(--primary-yellow); font-weight: 900; }
+        .hero-banner-full {
+            width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
+            height: 260px; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('images/banner.jpg');
+            background-size: cover; background-position: center; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: var(--pure-white); text-align: center;
+            margin-bottom: 45px; border-bottom: 6px solid var(--primary-yellow);
+        }
+        .hero-banner-full h1 { margin: 0; font-size: 3.5rem; color: var(--primary-yellow); font-weight: 900; }
 
-        .section-title { font-size: 1.8rem; font-weight: 800; border-left: 6px solid var(--primary-yellow); padding-left: 15px; margin-bottom: 25px; }
-        .papers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-        @media (max-width: 768px) { .papers-grid { grid-template-columns: 1fr; } }
-        .paper-card { background: var(--card-gray); border-radius: 10px; border: 2px solid #e5e7eb; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
-        .paper-card button { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .section-title { font-size: 1.8rem; font-weight: 800; border-left: 6px solid var(--primary-yellow); padding-left: 15px; margin-bottom: 25px; }
+        .papers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        @media (max-width: 768px) { .papers-grid { grid-template-columns: 1fr; } }
+        .paper-card { background: var(--card-gray); border-radius: 10px; border: 2px solid #e5e7eb; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        .paper-card button { background: #111827; color: var(--primary-yellow); border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; position: relative; }
-        .timer { font-size: 1.25rem; font-weight: bold; color: var(--pure-white); background: var(--danger-red); padding: 6px 14px; border-radius: 6px; float: right; }
-        .file-display-container { width: 100%; margin: 20px 0; background: var(--card-gray); padding: 10px; border: 2px solid #e5e7eb; box-sizing: border-box; }
+        .exam-window { background: var(--pure-white); padding: 40px; border-radius: 12px; border: 3px solid #111827; position: relative; }
+        .timer { font-size: 1.25rem; font-weight: bold; color: var(--pure-white); background: var(--danger-red); padding: 6px 14px; border-radius: 6px; float: right; }
+        .file-display-container { width: 100%; margin: 20px 0; background: var(--card-gray); padding: 10px; border: 2px solid #e5e7eb; box-sizing: border-box; }
 
-        .warning-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
-        .action-btn { background: var(--primary-yellow); border: none; color: black; padding: 15px 40px; font-weight: bold; font-size: 1.1rem; border-radius: 6px; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
-        .action-btn:hover { background: #e2b80f; }
+        .warning-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        .action-btn { background: var(--primary-yellow); border: none; color: black; padding: 15px 40px; font-weight: bold; font-size: 1.1rem; border-radius: 6px; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        .action-btn:hover { background: #e2b80f; }
 
-        .score-board { background: #1e293b; padding: 25px; border-radius: 8px; border: 2px solid var(--primary-yellow); margin-top: 20px; width: 100%; max-width: 500px; text-align: left; }
-        .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
-    </style>
+        .score-board { background: #1e293b; padding: 25px; border-radius: 8px; border: 2px solid var(--primary-yellow); margin-top: 20px; width: 100%; max-width: 500px; text-align: left; }
+        .score-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
+    </style>
 </head>
 <body>
 
-    <div id="screen-size-blocker" class="warning-screen hidden" style="background: #111827;">
-        <span style="font-size: 5rem; margin-bottom: 20px;">🖥️</span>
-        <h1 style="color: var(--primary-yellow); font-size: 2.5rem; margin: 0 0 15px 0;">FULL SCREEN REQUIRED</h1>
-        <p style="max-width: 600px; font-size: 1.2rem; color: #e5e7eb; line-height: 1.6; margin-bottom: 25px;">
-            Appearich Portal has detected that your browser window is minimized or in split-screen mode.<br>
-            <strong>You cannot view the dashboard or attempt tasks in this layout state.</strong>
-        </p>
-    </div>
+    <div id="screen-size-blocker" class="warning-screen hidden" style="background: #111827;">
+        <span style="font-size: 5rem; margin-bottom: 20px;">🖥️</span>
+        <h1 style="color: var(--primary-yellow); font-size: 2.5rem; margin: 0 0 15px 0;">FULL SCREEN REQUIRED</h1>
+        <p style="max-width: 600px; font-size: 1.2rem; color: #e5e7eb; line-height: 1.6; margin-bottom: 25px;">
+            Appearich Portal has detected that your browser window is minimized or in split-screen mode.<br>
+            <strong>You cannot view the dashboard or attempt tasks in this layout state.</strong>
+        </p>
+    </div>
 
-    <div id="splash-screen">
-        <div>
-            <div class="logo-main-text">Appearich</div>
-            <div class="logo-sub-text">The Next Chapter</div>
-        </div>
-    </div>
+    <div id="splash-screen">
+        <div>
+            <div class="logo-main-text">Appearich</div>
+            <div class="logo-sub-text">The Next Chapter</div>
+        </div>
+    </div>
 
-    <div id="main-dashboard" class="app-container hidden">
-        <div class="hero-banner-full">
-            <h1>Appearich</h1>
-            <p>"Saw a seed of preparation today for ur next chapter"</p>
-        </div>
+    <div id="main-dashboard" class="app-container hidden">
+        <div class="hero-banner-full">
+            <h1>Appearich</h1>
+            <p>"Saw a seed of preparation today for ur next chapter"</p>
+        </div>
 
-        <h2 class="section-title">Your Published Grades</h2>
-        <div style="margin-bottom: 40px;">
-            <div class="score-board">
-                <div class="score-row" style="font-weight: bold; color: var(--primary-yellow);"><span>Subject Name</span> <span>Achieved Grade</span></div>
-                <div class="score-row" style="color: #cbd5e1;"><span>Mathematics Core Paper</span> <span id="22">PENDING</span></div>
-                <div class="score-row" style="color: #cbd5e1;"><span>Science Core Paper</span> <span id="grade-science-box">NOT ATTEMPTED</span></div>
-            </div>
-        </div>
+        <h2 class="section-title">Your Published Grades</h2>
+        <div style="margin-bottom: 40px;">
+            <div class="score-board">
+                <div class="score-row" style="font-weight: bold; color: var(--primary-yellow);"><span>Subject Name</span> <span>Achieved Grade</span></div>
+                <div class="score-row" style="color: #cbd5e1;"><span>Mathematics Core Paper</span> <span id="grade-math-box">PENDING</span></div>
+                <div class="score-row" style="color: #cbd5e1;"><span>Science Core Paper</span> <span id="grade-science-box">NOT ATTEMPTED</span></div>
+            </div>
+        </div>
 
-        <h2 class="section-title">Available Assessments</h2>
-        <div class="papers-grid">
-            <div class="paper-card">
-                <h3>Mathematics</h3>
-                <p>Open the Mathematics secure digital test view layout window.</p>
-                <button onclick="loadLocalExam('math')">Attempt Paper</button>
-            </div>
-            <div class="paper-card">
-                <h3>Science</h3>
-                <p>Open the Science secure digital test view layout window.</p>
-                <button onclick="loadLocalExam('science')">Attempt Paper</button>
-            </div>
-            <div class="paper-card">
-                <h3>English</h3>
-                <p>Open the English secure digital test view layout window.</p>
-                <button onclick="loadLocalExam('english')">Attempt Paper</button>
-            </div>
-        </div>
-    </div>
+        <h2 class="section-title">Available Assessments</h2>
+        <div class="papers-grid">
+            <div class="paper-card">
+                <h3>Mathematics</h3>
+                <p>Open the Mathematics secure digital test view layout window.</p>
+                <button onclick="loadLocalExam('math')">Attempt Paper</button>
+            </div>
+            <div class="paper-card">
+                <h3>Science</h3>
+                <p>Open the Science secure digital test view layout window.</p>
+                <button onclick="loadLocalExam('science')">Attempt Paper</button>
+            </div>
+            <div class="paper-card">
+                <h3>English</h3>
+                <p>Open the English secure digital test view layout window.</p>
+                <button onclick="loadLocalExam('english')">Attempt Paper</button>
+            </div>
+        </div>
+    </div>
 
-    <div id="exam-workspace-screen" class="app-container hidden">
-        <div class="exam-window">
-            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
-            <h2 id="exam-title-header">Exam Paper</h2>
-            <hr style="border-color:#e5e7eb;">
-            <div id="questions-injection-box" class="file-display-container"></div>
-            <button onclick="triggerManualFinish()" style="background:var(--success-green); color:white; width:100%; border:none; padding:16px; font-size:1.1rem; font-weight:bold; border-radius:6px; cursor:pointer;">Finish Exam & Submit Work</button>
-        </div>
-    </div>
+    <div id="exam-workspace-screen" class="app-container hidden">
+        <div class="exam-window">
+            <span class="timer">Time Left: <span id="time-display">75:00</span></span>
+            <h2 id="exam-title-header">Exam Paper</h2>
+            <hr style="border-color:#e5e7eb;">
+            <div id="questions-injection-box" class="file-display-container"></div>
+            <button onclick="triggerManualFinish()" style="background:var(--success-green); color:white; width:100%; border:none; padding:16px; font-size:1.1rem; font-weight:bold; border-radius:6px; cursor:pointer;">Finish Exam & Submit Work</button>
+        </div>
+    </div>
 
-    <div id="lockout-screen" class="warning-screen hidden">
-        <h1 id="lockout-headline" style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">🔴 ACCESS PERMANENTLY DENIED</h1>
-        <p id="lockout-paragraph" style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
-            This exam layout has been locked out because environmental controls exceeded limits or time expired.<br>
-            <strong>System locked out. Please contact your instructor.</strong>
-        </p>
-        <div id="instruction-box" style="background:#111827; padding:20px; border-radius:8px; border:2px dashed var(--danger-red); margin-top:20px; max-width:500px;">
-            <p style="margin:0; font-weight:bold; color:white;">👉 INSTRUCTIONS FOR CANDIDATE:</p>
-            <ol style="text-align:left; color:#94a3b8; margin:10px 0 0 0; padding-left:20px;">
-                <li>Take another phone right now.</li>
-                <li>Snap clear photos of your handwritten calculations.</li>
-                <li>Send all photos to your teacher's phone directly.</li>
-            </ol>
-        </div>
-         
-        <div id="master-reset-container" style="margin-top: 30px;">
-            <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure tracking active... <span id="bg-live-countdown" style="color: var(--primary-yellow); font-weight: bold; margin-left: 5px;"></span></p>
-        </div>
-    </div>
+    <div id="lockout-screen" class="warning-screen hidden">
+        <h1 id="lockout-headline" style="color:var(--danger-red); font-size:3rem; margin:0 0 10px 0;">🔴 ACCESS PERMANENTLY DENIED</h1>
+        <p id="lockout-paragraph" style="max-width:600px; font-size:1.3rem; color:#cbd5e1; line-height:1.6;">
+            This exam layout has been locked out because environmental controls exceeded limits or time expired.<br>
+            <strong>System locked out. Please contact your instructor.</strong>
+        </p>
+        <div id="instruction-box" style="background:#111827; padding:20px; border-radius:8px; border:2px dashed var(--danger-red); margin-top:20px; max-width:500px;">
+            <p style="margin:0; font-weight:bold; color:white;">👉 INSTRUCTIONS FOR CANDIDATE:</p>
+            <ol style="text-align:left; color:#94a3b8; margin:10px 0 0 0; padding-left:20px;">
+                <li>Take another phone right now.</li>
+                <li>Snap clear photos of your handwritten calculations.</li>
+                <li>Send all photos to your teacher's phone directly.</li>
+            </ol>
+        </div>
+         
+        <div id="master-reset-container" style="margin-top: 30px;">
+            <p id="checking-status-text" style="color: #6b7280; font-size: 0.9rem; font-style: italic;">🔄 Secure tracking active... <span id="bg-live-countdown" style="color: var(--primary-yellow); font-weight: bold; margin-left: 5px;"></span></p>
+        </div>
+    </div>
 
-    <script>
-        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
+    <script>
+        const REMOTE_JSON_URL = "https://gist.githubusercontent.com/edwinandrew-star/b4356c93a087858c1dafa98c8be362b7/raw/status.%2520Json";
 
-        const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
-        const localExamsData = {
-            math: { title: "Mathematics Core correction Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math-paper-correction3a.pdf" },
-            science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "science-papera.pdf" },
-            english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
-        };
+        const PUBLISHED_GRADES = { math: "WAIT FOR THE SCORE", science: "NOT ATTEMPTED", english: "NOT ATTEMPTED" };
+        const localExamsData = {
+            math: { title: "Mathematics Core correction Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "math-paper-correction3a.pdf" },
+            science: { title: "Science Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "science-papera.pdf" },
+            english: { title: "English Core Practice Exam Paper", durationSeconds: 4500, isPdf: true, fileLink: "https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf" }
+        };
 
-        const WHATSAPP_PHONE = "+255764519027"; 
-        const CALLMEBOT_API_KEY = "999999"; 
+        const WHATSAPP_PHONE = "+255764519027"; 
+        const CALLMEBOT_API_KEY = "999999"; 
 
-        let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
+        let globalTimingInterval, isExamActive = false, selectedSubjectTitle = "", currentSubjectKey = "", isBypassingLockChecks = false;
 
-        // CONSTANT SECURITY: Quietly prevent text selection and right-clicks to eliminate accidental lockout triggers
-        document.addEventListener('contextmenu', event => event.preventDefault()); 
-        document.addEventListener('selectstart', event => event.preventDefault()); 
-        
-        document.addEventListener('keydown', (e) => {
-            // CONSTANT SECURITY: Intercept keyboard hotkeys to avoid standard copy operations
-            if (e.keyCode === 123 || 
-                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
-                (e.ctrlKey && e.keyCode === 85) ||
-                (e.ctrlKey && e.keyCode === 83) ||
-                (e.altKey && e.keyCode === 9)) { 
-                e.preventDefault();
-                return false;
-            }
+        // CONSTANT SECURITY: Quietly prevent text selection and right-clicks to eliminate accidental lockout triggers
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
+        document.addEventListener('selectstart', event => event.preventDefault()); 
+        
+        document.addEventListener('keydown', (e) => {
+            // CONSTANT SECURITY: Intercept keyboard hotkeys to avoid standard copy operations
+            if (e.keyCode === 123 || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+                (e.ctrlKey && e.keyCode === 85) ||
+                (e.ctrlKey && e.keyCode === 83) ||
+                (e.altKey && e.keyCode === 9)) { 
+                e.preventDefault();
+                return false;
+            }
 
-            // CONSTANT SECURITY: Intercept PrintScreen cleanly, modifying clipboard data without triggering false-positive lockouts
-            if (e.key === "PrintScreen" || e.keyCode === 44) {
-                e.preventDefault();
-                navigator.clipboard.writeText("Screenshot Blocked.");
-            }
-        });
+            // CONSTANT SECURITY: Intercept PrintScreen cleanly, modifying clipboard data without triggering false-positive lockouts
+            if (e.key === "PrintScreen" || e.keyCode === 44) {
+                e.preventDefault();
+                navigator.clipboard.writeText("Screenshot Blocked.");
+            }
+        });
 
-        window.addEventListener('keyup', (e) => {
-            if (e.key === "PrintScreen" || e.keyCode === 44) {
-                navigator.clipboard.writeText("Screenshot Blocked.");
-            }
-        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === "PrintScreen" || e.keyCode === 44) {
+                navigator.clipboard.writeText("Screenshot Blocked.");
+            }
+        });
 
-        window.addEventListener('resize', runMainScreenEnforcement);
+        window.addEventListener('resize', runMainScreenEnforcement);
 
-        // CONSTANT SECURITY: Monitors visibility states if active student switches window profiles
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                calculateTimeRemaining();
-                setTimeout(() => {
-                    syncWithRemoteGistServer();
-                }, 3000);
-            } else {
-                if (isExamActive && !isBypassingLockChecks) {
-                    handleViolationLockout();
-                }
-            }
-        });
+        // CONSTANT SECURITY: Monitors visibility states if active student switches window profiles
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                calculateTimeRemaining();
+                setTimeout(() => {
+                    syncWithRemoteGistServer();
+                }, 3000);
+            } else {
+                if (isExamActive && !isBypassingLockChecks) {
+                    handleViolationLockout();
+                }
+            }
+        });
 
-        window.addEventListener('blur', () => {
-            if (isExamActive && !isBypassingLockChecks) {
-                handleViolationLockout();
-            }
-        });
+        window.addEventListener('blur', () => {
+            if (isExamActive && !isBypassingLockChecks) {
+                handleViolationLockout();
+            }
+        });
 
-        function checkGlobalPermanentLockStatus() {
-            if (!currentSubjectKey) return false;
-            let status = localStorage.getItem(`status_${currentSubjectKey}`);
-            return (status === 'cheated' || status === 'locked');
-        }
+        function checkGlobalPermanentLockStatus() {
+            if (!currentSubjectKey) return false;
+            let status = localStorage.getItem(`status_${currentSubjectKey}`);
+            return (status === 'cheated' || status === 'locked');
+        }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
-            document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('grade-math-box').innerText = PUBLISHED_GRADES.math;
+            document.getElementById('grade-science-box').innerText = PUBLISHED_GRADES.science;
 
-            currentSubjectKey = localStorage.getItem('active_subject_key') || "";
-            if (currentSubjectKey) {
-                selectedSubjectTitle = localExamsData[currentSubjectKey].title;
-                if (localStorage.getItem('exam_deadline_timestamp') && !localStorage.getItem(`status_${currentSubjectKey}`)) {
-                    isExamActive = true;
-                }
-            }
+            currentSubjectKey = localStorage.getItem('active_subject_key') || "";
+            if (currentSubjectKey) {
+                selectedSubjectTitle = localExamsData[currentSubjectKey].title;
+                if (localStorage.getItem('exam_deadline_timestamp') && !localStorage.getItem(`status_${currentSubjectKey}`)) {
+                    isExamActive = true;
+                }
+            }
 
-            runMainScreenEnforcement();
+            runMainScreenEnforcement();
 
-            setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('hidden');
-                syncWithRemoteGistServer();
-            }, 2000); 
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+                syncWithRemoteGistServer();
+            }, 2000); 
 
-            globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
-        });
+            globalTimingInterval = setInterval(executeGlobalClockTick, 1000);
+        });
 
-        function executeGlobalClockTick() {
-            calculateTimeRemaining();
-            syncWithRemoteGistServer();
-        }
+        function executeGlobalClockTick() {
+            calculateTimeRemaining();
+            syncWithRemoteGistServer();
+        }
 
-        function calculateTimeRemaining() {
-            const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
-            if (!deadlineStr || !currentSubjectKey) return;
+        function calculateTimeRemaining() {
+            const deadlineStr = localStorage.getItem('exam_deadline_timestamp');
+            if (!deadlineStr || !currentSubjectKey) return;
 
-            const targetDeadline = parseInt(deadlineStr);
-            const now = Date.now(); 
-            const remainingSeconds = Math.round((targetDeadline - now) / 1000);
+            const targetDeadline = parseInt(deadlineStr);
+            const now = Date.now(); 
+            const remainingSeconds = Math.round((targetDeadline - now) / 1000);
 
-            // ABSOLUTE CLOSURE ENFORCEMENT ON TIME EXPIRATION
-            if (remainingSeconds <= 0) {
-                localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-                localStorage.removeItem('exam_deadline_timestamp');
-                localStorage.removeItem('active_subject_key');
-                isExamActive = false;
-                
-                sendWhatsappNotification(`⏰ TIMEOUT: Exam time has expired for "${selectedSubjectTitle}". Screen locked.`);
-                showStrictLockoutScreen();
-                document.getElementById('bg-live-countdown').innerText = "(Time Expired)";
-            } else {
-                let mins = Math.floor(remainingSeconds / 60);
-                let secs = remainingSeconds % 60;
-                let formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
-                
-                document.getElementById('time-display').innerText = formattedTime;
-                document.getElementById('bg-live-countdown').innerText = `(${formattedTime} remaining)`;
-            }
-        }
+            // ABSOLUTE CLOSURE ENFORCEMENT ON TIME EXPIRATION
+            if (remainingSeconds <= 0) {
+                localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+                localStorage.removeItem('exam_deadline_timestamp');
+                localStorage.removeItem('active_subject_key');
+                isExamActive = false;
+                
+                sendWhatsappNotification(`⏰ TIMEOUT: Exam time has expired for "${selectedSubjectTitle}". Screen locked.`);
+                showStrictLockoutScreen();
+                document.getElementById('bg-live-countdown').innerText = "(Time Expired)";
+            } else {
+                let mins = Math.floor(remainingSeconds / 60);
+                let secs = remainingSeconds % 60;
+                let formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
+                
+                document.getElementById('time-display').innerText = formattedTime;
+                document.getElementById('bg-live-countdown').innerText = `(${formattedTime} remaining)`;
+            }
+        }
 
-        async function syncWithRemoteGistServer() {
-            if (!navigator.onLine) return;
+        async function syncWithRemoteGistServer() {
+            if (!navigator.onLine) return;
 
-            try {
-                const forcingCounter = Date.now();
-                const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`).catch(() => null);
-                if (!response) return; 
-                
-                const data = await response.json();
-                
-                if (data.system_lock === "clear" || data.system_lock === "reset") {
-                    isBypassingLockChecks = true;
-                    
-                    const subjects = ['math', 'science', 'english'];
-                    subjects.forEach(k => localStorage.removeItem(`status_${k}`));
-                    
-                    document.getElementById('lockout-screen').classList.add('hidden');
-                    document.getElementById('screen-size-blocker').classList.add('hidden');
-                    
-                    const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
-                    if (hasDeadline) {
-                        isExamActive = true; 
-                        const exam = localExamsData[currentSubjectKey];
-                        document.getElementById('exam-title-header').innerText = exam.title;
-                        let injectionBox = document.getElementById('questions-injection-box');
-                        if(injectionBox.innerHTML === "") {
-                            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
-                        }
-                        
-                        document.getElementById('exam-workspace-screen').classList.remove('hidden');
-                        document.getElementById('main-dashboard').classList.add('hidden');
-                    } else {
-                        isExamActive = false;
-                        document.getElementById('main-dashboard').classList.remove('hidden');
-                        document.getElementById('exam-workspace-screen').classList.add('hidden');
-                    }
+            try {
+                const forcingCounter = Date.now();
+                const response = await fetch(`${REMOTE_JSON_URL}?cache_break=${forcingCounter}`).catch(() => null);
+                if (!response) return; 
+                
+                const data = await response.json();
+                
+                if (data.system_lock === "clear" || data.system_lock === "reset") {
+                    isBypassingLockChecks = true;
+                    
+                    const subjects = ['math', 'science', 'english'];
+                    subjects.forEach(k => localStorage.removeItem(`status_${k}`));
+                    
+                    document.getElementById('lockout-screen').classList.add('hidden');
+                    document.getElementById('screen-size-blocker').classList.add('hidden');
+                    
+                    const hasDeadline = localStorage.getItem('exam_deadline_timestamp');
+                    if (hasDeadline) {
+                        isExamActive = true; 
+                        const exam = localExamsData[currentSubjectKey];
+                        document.getElementById('exam-title-header').innerText = exam.title;
+                        let injectionBox = document.getElementById('questions-injection-box');
+                        if(injectionBox.innerHTML === "") {
+                            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
+                        }
+                        
+                        document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                        document.getElementById('main-dashboard').classList.add('hidden');
+                    } else {
+                        isExamActive = false;
+                        document.getElementById('main-dashboard').classList.remove('hidden');
+                        document.getElementById('exam-workspace-screen').classList.add('hidden');
+                    }
 
-                    setTimeout(() => { isBypassingLockChecks = false; }, 4000);
-                    return;
-                }
-            } catch (e) {}
+                    setTimeout(() => { isBypassingLockChecks = false; }, 4000);
+                    return;
+                }
+            } catch (e) {}
 
-            if (checkGlobalPermanentLockStatus()) {
-                showStrictLockoutScreen();
-            } else if (checkFullScreenEnforcement()) {
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
-                    document.getElementById('main-dashboard').classList.remove('hidden');
-                } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
-                    document.getElementById('exam-workspace-screen').classList.remove('hidden');
-                    document.getElementById('lockout-screen').classList.add('hidden');
-                }
-            }
-        }
+            if (checkGlobalPermanentLockStatus()) {
+                showStrictLockoutScreen();
+            } else if (checkFullScreenEnforcement()) {
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                } else if (isExamActive && !localStorage.getItem(`status_${currentSubjectKey}`)) {
+                    document.getElementById('exam-workspace-screen').classList.remove('hidden');
+                    document.getElementById('lockout-screen').classList.add('hidden');
+                }
+            }
+        }
 
-        // CONSTANT SECURITY: Enforces explicit frame/window resolution ratios
-        function checkFullScreenEnforcement() {
-            return (window.outerWidth >= (window.screen.width * 0.95) && window.outerHeight >= (window.screen.height * 0.90));
-        }
+        // CONSTANT SECURITY: Enforces explicit frame/window resolution ratios
+        function checkFullScreenEnforcement() {
+            return (window.outerWidth >= (window.screen.width * 0.95) && window.outerHeight >= (window.screen.height * 0.90));
+        }
 
-        function runMainScreenEnforcement() {
-            if (isBypassingLockChecks) return;
-            
-            if (checkGlobalPermanentLockStatus()) {
-                showStrictLockoutScreen();
-                return;
-            }
-            
-            if (!checkFullScreenEnforcement()) {
-                if (isExamActive) {
-                    handleViolationLockout();
-                } else {
-                    document.getElementById('screen-size-blocker').classList.remove('hidden');
-                    document.getElementById('main-dashboard').classList.add('hidden');
-                    document.getElementById('exam-workspace-screen').classList.add('hidden');
-                }
-            } else {
-                document.getElementById('screen-size-blocker').classList.add('hidden');
-                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
-                    document.getElementById('main-dashboard').classList.remove('hidden');
-                }
-            }
-        }
+        function runMainScreenEnforcement() {
+            if (isBypassingLockChecks) return;
+            
+            if (checkGlobalPermanentLockStatus()) {
+                showStrictLockoutScreen();
+                return;
+            }
+            
+            if (!checkFullScreenEnforcement()) {
+                if (isExamActive) {
+                    handleViolationLockout();
+                } else {
+                    document.getElementById('screen-size-blocker').classList.remove('hidden');
+                    document.getElementById('main-dashboard').classList.add('hidden');
+                    document.getElementById('exam-workspace-screen').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('screen-size-blocker').classList.add('hidden');
+                if (!isExamActive && document.getElementById('lockout-screen').classList.contains('hidden')) {
+                    document.getElementById('main-dashboard').classList.remove('hidden');
+                }
+            }
+        }
 
-        // CONSTANT SECURITY: Outbound log dispatcher using live cloud webhooks
-        function sendWhatsappNotification(messageText) {
-            try {
-                fetch(`https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
-            } catch (e) {}
-        }
+        // CONSTANT SECURITY: Outbound log dispatcher using live cloud webhooks
+        function sendWhatsappNotification(messageText) {
+            try {
+                fetch(`https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_API_KEY}`, { mode: 'no-cors' });
+            } catch (e) {}
+        }
 
-        function loadLocalExam(subjectKey) {
-            currentSubjectKey = subjectKey;
-            if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen(); return; }
-            
-            if (!checkFullScreenEnforcement()) { 
-                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-                sendWhatsappNotification(`🚨 CHEAT ALERT: Started exam in split or small layout screen for "${localExamsData[subjectKey].title}"! Screen locked.`);
-                showStrictLockoutScreen();
-                return; 
-            }
+        function loadLocalExam(subjectKey) {
+            currentSubjectKey = subjectKey;
+            if (checkGlobalPermanentLockStatus()) { showStrictLockoutScreen(); return; }
+            
+            if (!checkFullScreenEnforcement()) { 
+                localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+                sendWhatsappNotification(`🚨 CHEAT ALERT: Started exam in split or small layout screen for "${localExamsData[subjectKey].title}"! Screen locked.`);
+                showStrictLockoutScreen();
+                return; 
+            }
 
-            const exam = localExamsData[subjectKey];
-            if (!exam) return;
+            const exam = localExamsData[subjectKey];
+            if (!exam) return;
 
-            selectedSubjectTitle = exam.title; 
-            
-            if (!localStorage.getItem('exam_deadline_timestamp')) {
-                const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
-                localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
-            }
-            localStorage.setItem('active_subject_key', subjectKey);
-            isExamActive = true;
+            selectedSubjectTitle = exam.title; 
+            
+            if (!localStorage.getItem('exam_deadline_timestamp')) {
+                const targetDeadlineValue = Date.now() + (exam.durationSeconds * 1000);
+                localStorage.setItem('exam_deadline_timestamp', targetDeadlineValue.toString());
+            }
+            localStorage.setItem('active_subject_key', subjectKey);
+            isExamActive = true;
 
-            sendWhatsappNotification(`📢 ALERT: Student started "${selectedSubjectTitle}".`);
-            document.getElementById('main-dashboard').classList.add('hidden');
-            document.getElementById('exam-workspace-screen').classList.remove('hidden');
-            document.getElementById('exam-title-header').innerText = exam.title;
+            sendWhatsappNotification(`📢 ALERT: Student started "${selectedSubjectTitle}".`);
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('exam-workspace-screen').classList.remove('hidden');
+            document.getElementById('exam-title-header').innerText = exam.title;
 
-            let injectionBox = document.getElementById('questions-injection-box');
-            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
-        }
-        
-        function triggerManualFinish() {
-            isExamActive = false;
-            localStorage.setItem(`status_${currentSubjectKey}`, "locked");
-            localStorage.removeItem('exam_deadline_timestamp');
-            localStorage.removeItem('active_subject_key');
-            document.getElementById('exam-workspace-screen').classList.add('hidden');
-            sendWhatsappNotification(`⚠️ ALERT: Completed exam layout submission manually for "${selectedSubjectTitle}".`);
-            showStrictLockoutScreen();
-        }
+            let injectionBox = document.getElementById('questions-injection-box');
+            injectionBox.innerHTML = exam.isPdf ? `<iframe src="${exam.fileLink}" style="width:100%; height:650px; border:none;"></iframe>` : `<div style="text-align:center;"><img src="${exam.fileLink}" style="max-width:100%; height:auto;" /></div>`;
+        }
+        
+        function triggerManualFinish() {
+            isExamActive = false;
+            localStorage.setItem(`status_${currentSubjectKey}`, "locked");
+            localStorage.removeItem('exam_deadline_timestamp');
+            localStorage.removeItem('active_subject_key');
+            document.getElementById('exam-workspace-screen').classList.add('hidden');
+            sendWhatsappNotification(`⚠️ ALERT: Completed exam layout submission manually for "${selectedSubjectTitle}".`);
+            showStrictLockoutScreen();
+        }
 
-        function handleViolationLockout() {
-            if (!isExamActive || isBypassingLockChecks) return;
-            isExamActive = false; 
-            localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
-            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or computer turned to sleep during "${selectedSubjectTitle}"! Screen locked.`);
-            showStrictLockoutScreen();
-        }
+        function handleViolationLockout() {
+            if (!isExamActive || isBypassingLockChecks) return;
+            isExamActive = false; 
+            localStorage.setItem(`status_${currentSubjectKey}`, "cheated");
+            sendWhatsappNotification(`🚨 CHEAT ALERT: Shifted tabs, split screen, or computer turned to sleep during "${selectedSubjectTitle}"! Screen locked.`);
+            showStrictLockoutScreen();
+        }
 
-        function showStrictLockoutScreen() {
-            document.getElementById('main-dashboard').classList.add('hidden');
-            document.getElementById('exam-workspace-screen').classList.add('hidden');
-            document.getElementById('lockout-screen').classList.remove('hidden');
-        }
-    </script>
+        function showStrictLockoutScreen() {
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('exam-workspace-screen').classList.add('hidden');
+            document.getElementById('lockout-screen').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
+ where do i updated the marks on this code
